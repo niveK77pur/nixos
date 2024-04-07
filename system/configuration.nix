@@ -50,6 +50,7 @@
     environment.systemPackages = with pkgs; [
       neovim
       aria
+      git
       #  wget
     ];
 

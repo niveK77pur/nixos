@@ -23,7 +23,7 @@ in {
     };
   };
 
-  imports = [../opengl.nix];
+  imports = [../graphics/opengl.nix];
 
   config = lib.mkIf (cfg.type == gpuType) (lib.mkMerge [
     {

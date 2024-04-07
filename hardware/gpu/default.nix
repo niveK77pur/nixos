@@ -5,6 +5,9 @@
       type = lib.types.enum ["amd" "nvidia" "none"];
       default = "none";
     };
+    hybrid = {
+      enable = lib.mkEnableOption "Enable NVIDIA Optimus PRIME";
+    };
   };
 
   imports = [

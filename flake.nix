@@ -36,6 +36,23 @@
       ];
     };
 
+    nixosConfigurations.titan = nixpkgs.lib.nixosSystem {
+      inherit system;
+      specialArgs = {
+        deviceName = "titan"; # must match configuration name
+      };
+      modules = [
+        ./system/configuration.nix
+        ./hardware-configuration.nix
+        ./users/kevin.nix
+        # ./hardware/gpu
+        {
+          display.enable = true;
+          # gpu.type = "nvidia";
+        }
+      ];
+    };
+
     nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = {

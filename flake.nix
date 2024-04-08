@@ -72,6 +72,7 @@
     devShells.${system}.default = pkgs.mkShell {
       packages = [
         args.alejandra.defaultPackage.${system}
+        pkgs.lazygit
       ];
     };
   };

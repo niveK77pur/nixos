@@ -36,6 +36,22 @@
       ];
     };
 
+    nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
+      inherit system;
+      specialArgs = {
+        deviceName = "vm"; # must match configuration name
+      };
+      modules = [
+        ./system/configuration.nix
+        ./hardware-configuration.nix
+        ./virt-manager.nix
+        ./users/kevin.nix
+        {
+          display.enable = true;
+        }
+      ];
+    };
+
     devShells.${system}.default = pkgs.mkShell {
       packages = [
         args.alejandra.defaultPackage.${system}

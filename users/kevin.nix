@@ -8,6 +8,9 @@
         firefox
         thunderbird
       ];
+      shell = pkgs.fish;
     };
+
+    programs.fish.enable = true;
   };
 }

@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   config,
   ...
 }: let
@@ -43,6 +44,7 @@ in {
 
     # Configure X11
     (lib.mkIf config.services.xserver.enable {
+      environment.systemPackages = with pkgs; [xorg.xbacklight];
       services.xserver.xkb = {
         layout = "ch";
         variant = "fr";

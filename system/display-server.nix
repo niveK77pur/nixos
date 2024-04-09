@@ -44,7 +44,10 @@ in {
 
     # Configure X11
     (lib.mkIf config.services.xserver.enable {
-      environment.systemPackages = with pkgs; [xorg.xbacklight];
+      environment.systemPackages = with pkgs; [
+        acpilight
+        xclip
+      ];
       services.xserver.xkb = {
         layout = "ch";
         variant = "fr";

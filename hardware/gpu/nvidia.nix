@@ -21,12 +21,27 @@ in {
       ];
       default = "stable";
     };
+    intelBusId = lib.mkOption {
+      description = "Bus ID Value for iGPU";
+      type = lib.types.string;
+    };
+    nvidiaBusId = lib.mkOption {
+      description = "Bus ID Value for dGPU";
+      type = lib.types.string;
+    };
   };
 
-  imports = [../graphics/opengl.nix];
+  # imports = [../graphics/opengl.nix];
 
   config = lib.mkIf (cfg.type == gpuType) (lib.mkMerge [
     {
+      # Enable OpenGL (TODO: replace with imports above)
+      hardware.opengl = {
+        enable = true;
+        driSupport = true;
+        driSupport32Bit = true;
+      };
+
       services.xserver.videoDrivers = ["nvidia"];
       hardware.nvidia = {
         # Modesetting is required.
@@ -60,7 +75,14 @@ in {
     }
 
     (lib.mkIf cfg.hybrid.enable {
-      # TODO: Implement hybrid mode
+      hardware.nvidia.prime = {
+        offload = {
+          enable = true;
+          enableOffloadCmd = true;
+        };
+        intelBusId = "${cfg.nvidia.intelBusId}";
+        nvidiaBusId = "${cfg.nvidia.intelBusId}";
+      };
     })
   ]);
 }

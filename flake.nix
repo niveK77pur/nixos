@@ -46,10 +46,13 @@
         ./hardware-configuration.nix
         ./users/kevin.nix
         ./topics
-        # ./hardware/gpu
+        ./hardware/gpu
         {
           display.enable = true;
-          # gpu.type = "nvidia";
+          gpu.type = "nvidia";
+          gpu.hybrid = true;
+          gpu.nvidia.nvidiaBusId = "PCI:1:0:0";
+          gpu.nvidia.intelBusId = "PCI:6:0:0";
         }
       ];
     };

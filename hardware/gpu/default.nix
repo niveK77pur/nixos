@@ -6,7 +6,7 @@
       default = "none";
     };
     hybrid = {
-      enable = lib.mkEnableOption "Enable NVIDIA Optimus PRIME";
+      enable = lib.mkEnableOption "Enable NVIDIA Optimus PRIME (necessary for laptops)";
     };
   };
 

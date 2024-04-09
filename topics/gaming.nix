@@ -5,6 +5,7 @@
       lutris
       heroic
       mangohud
+      gamemode
       gpu-screen-recorder
       gpu-screen-recorder-gtk
       ludusavi

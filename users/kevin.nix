@@ -4,10 +4,6 @@
       isNormalUser = true;
       description = "User for personal";
       extraGroups = ["networkmanager" "wheel"];
-      packages = with pkgs; [
-        firefox
-        thunderbird
-      ];
       shell = pkgs.fish;
     };
 

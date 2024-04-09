@@ -45,8 +45,7 @@
         ./system/configuration.nix
         ./hardware-configuration.nix
         ./users/kevin.nix
-        ./topics/terminal.nix
-        ./topics/media.nix
+        ./topics
         # ./hardware/gpu
         {
           display.enable = true;

@@ -50,8 +50,9 @@
         {
           display.enable = true;
           gpu.type = "nvidia";
-          gpu.nvidia.nvidiaBusId = "PCI:1:0:0";
-          gpu.nvidia.intelBusId = "PCI:6:0:0";
+          gpu.hybrid.enable = true;
+          gpu.hybrid.nvidiaBusId = "PCI:1:0:0";
+          gpu.hybrid.intelBusId = "PCI:6:0:0";
         }
       ];
     };

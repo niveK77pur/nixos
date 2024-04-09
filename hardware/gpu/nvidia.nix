@@ -21,14 +21,6 @@ in {
       ];
       default = "stable";
     };
-    intelBusId = lib.mkOption {
-      description = "Bus ID Value for iGPU";
-      type = lib.types.string;
-    };
-    nvidiaBusId = lib.mkOption {
-      description = "Bus ID Value for dGPU";
-      type = lib.types.string;
-    };
   };
 
   # imports = [../graphics/opengl.nix];
@@ -80,8 +72,8 @@ in {
           enable = true;
           enableOffloadCmd = true;
         };
-        intelBusId = "${cfg.nvidia.intelBusId}";
-        nvidiaBusId = "${cfg.nvidia.intelBusId}";
+        intelBusId = "${cfg.hybrid.intelBusId}";
+        nvidiaBusId = "${cfg.hybrid.nvidiaBusId}";
       };
     })
   ]);

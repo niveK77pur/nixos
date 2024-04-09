@@ -5,5 +5,6 @@
     ./internet.nix
     ./messaging.nix
     ./terminal.nix
+    ./system.nix
   ];
 }

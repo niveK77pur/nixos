@@ -6,5 +6,6 @@
     ./messaging.nix
     ./terminal.nix
     ./system.nix
+    ./fonts.nix
   ];
 }

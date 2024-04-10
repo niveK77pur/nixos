@@ -17,8 +17,13 @@ in {
 
   config = with pkgs; {
     environment.systemPackages = [
-      mlocate
       pass
     ];
+
+    services.locate = {
+      enable = true;
+      package = pkgs.mlocate;
+      localuser = null; # disable warning
+    };
   };
 }

@@ -11,6 +11,7 @@
       atuin
       neovim
       zellij
+      z-lua
     ];
   };
 }

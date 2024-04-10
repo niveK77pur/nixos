@@ -71,6 +71,7 @@ in {
       environment.systemPackages = with pkgs; [
         acpilight
         xclip
+        dmenu
       ];
       services.xserver.xkb = {
         layout = "ch";

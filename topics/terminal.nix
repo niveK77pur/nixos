@@ -14,6 +14,7 @@
       z-lua
       bat
       ripgrep
+      file
     ];
   };
 }

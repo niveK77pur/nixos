@@ -55,6 +55,7 @@ in {
           ];
         };
       };
+      services.picom.enable = true;
     })
 
     # Enable the Hyprland window manager

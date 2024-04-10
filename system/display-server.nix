@@ -13,6 +13,7 @@ in {
       type = lib.types.enum [
         "plasma"
         "cinnamon"
+        "awesome"
         "hyprland"
       ];
       default = "plasma";
@@ -35,6 +36,25 @@ in {
       services.xserver.enable = true;
       services.xserver.displayManager.lightdm.enable = true;
       services.xserver.desktopManager.cinnamon.enable = true;
+    })
+
+    # Enable the Hyprland window manager
+    (lib.mkIf (cfg.windowManager == "awesome") {
+      # https://nixos.wiki/wiki/Awesome
+      services.xserver = {
+        enable = true;
+        displayManager = {
+          sddm.enable = true;
+          defaultSession = "none+awesome";
+        };
+        windowManager.awesome = {
+          enable = true;
+          luaModules = with pkgs.luaPackages; [
+            luarocks # is the package manager for Lua modules
+            luadbi-mysql # Database abstraction layer
+          ];
+        };
+      };
     })
 
     # Enable the Hyprland window manager

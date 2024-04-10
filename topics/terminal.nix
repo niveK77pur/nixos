@@ -12,6 +12,7 @@
       neovim
       zellij
       z-lua
+      bat
     ];
   };
 }

@@ -13,6 +13,7 @@
       zellij
       z-lua
       bat
+      ripgrep
     ];
   };
 }

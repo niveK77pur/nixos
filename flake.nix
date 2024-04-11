@@ -13,8 +13,9 @@
   outputs = {
     self,
     nixpkgs,
+    alejandra,
     ...
-  } @ args: let
+  }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
   in {
@@ -32,6 +33,9 @@
         {
           display.enable = true;
           # gpu.type = "amd";
+        }
+        {
+          environment.systemPackages = [alejandra.defaultPackage.${system}];
         }
       ];
     };
@@ -54,6 +58,9 @@
           gpu.hybrid.nvidiaBusId = "PCI:1:0:0";
           gpu.hybrid.intelBusId = "PCI:6:0:0";
         }
+        {
+          environment.systemPackages = [alejandra.defaultPackage.${system}];
+        }
       ];
     };
 
@@ -70,12 +77,15 @@
         {
           display.enable = true;
         }
+        {
+          environment.systemPackages = [alejandra.defaultPackage.${system}];
+        }
       ];
     };
 
     devShells.${system}.default = pkgs.mkShell {
       packages = [
-        args.alejandra.defaultPackage.${system}
+        alejandra.defaultPackage.${system}
         pkgs.lazygit
       ];
     };

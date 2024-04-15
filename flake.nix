@@ -47,6 +47,7 @@
       };
       modules = [
         ./system/configuration.nix
+        ./system/bluetooth.nix
         ./hardware-configuration.nix
         ./users/kevin.nix
         ./topics

@@ -12,6 +12,7 @@ in {
       description = "Which NVIDIA driver to use";
       type = lib.types.enum [
         # See https://nixos.wiki/wiki/Nvidia
+        "latest"
         "stable"
         "beta"
         "production"
@@ -20,11 +21,11 @@ in {
         "legacy_390"
         "legacy_340"
       ];
-      default = "stable";
+      default = "latest";
     };
   };
 
-  # imports = [../graphics/opengl.nix];
+  imports = [../graphics/opengl.nix];
 
   config = lib.mkIf (cfg.type == gpuType) (lib.mkMerge [
     {

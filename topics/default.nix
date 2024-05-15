@@ -8,5 +8,6 @@
     ./system.nix
     ./fonts.nix
     ./coding.nix
+    ./flatpak.nix
   ];
 }

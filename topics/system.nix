@@ -10,15 +10,13 @@ in {
     pass = {
       enable = lib.mkEnableOption {
         description = "Enable pass, the standard UNIX password manager";
-        default = true;
+        default = false;
       };
     };
   };
 
-  config = with pkgs; {
-    environment.systemPackages = [
-      pass
-    ];
+  config = {
+    environment.systemPackages = lib.lists.optional cfg.pass.enable pkgs.pass;
 
     services.locate = {
       enable = true;

@@ -85,6 +85,7 @@
     };
 
     devShells.${system}.default = pkgs.mkShell {
+      name = "nixos";
       packages = [
         alejandra.defaultPackage.${system}
         pkgs.lazygit

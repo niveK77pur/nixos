@@ -74,7 +74,8 @@ in {
           enable = true;
           enableOffloadCmd = true;
         };
-        intelBusId = "${cfg.hybrid.intelBusId}";
+        # intelBusId = "${cfg.hybrid.intelBusId}";
+        amdgpuBusId = "${cfg.hybrid.intelBusId}";
         nvidiaBusId = "${cfg.hybrid.nvidiaBusId}";
       };
       environment.systemPackages = [

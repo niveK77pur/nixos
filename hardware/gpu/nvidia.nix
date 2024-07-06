@@ -30,10 +30,9 @@ in {
   config = lib.mkIf (cfg.type == gpuType) (lib.mkMerge [
     {
       # Enable OpenGL (TODO: replace with imports above)
-      hardware.opengl = {
+      hardware.graphics = {
         enable = true;
-        driSupport = true;
-        driSupport32Bit = true;
+        enable32Bit = true;
       };
 
       services.xserver.videoDrivers = ["nvidia"];

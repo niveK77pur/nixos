@@ -6,6 +6,7 @@
     ./bootloader.nix
     ./display-server.nix
     ./networking.nix
+    ./kernel.nix
     ./nix.nix
   ];
 

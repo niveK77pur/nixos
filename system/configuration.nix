@@ -8,6 +8,7 @@
     ./networking.nix
     ./kernel.nix
     ./nix.nix
+    ./ssh.nix
   ];
 
   config = {
@@ -54,9 +55,6 @@
     # };
 
     # List services that you want to enable:
-
-    # Enable the OpenSSH daemon.
-    # services.openssh.enable = true;
 
     # This value determines the NixOS release from which the default
     # settings for stateful data, like file locations and database versions

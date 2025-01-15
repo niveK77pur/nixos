@@ -1,7 +1,7 @@
 {pkgs, ...}: {
   config = {
     environment.systemPackages = with pkgs; [
-      fira-code-nerdfont
+      nerd-fonts.fira-code
       victor-mono
     ];
   };

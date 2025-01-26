@@ -11,6 +11,11 @@
       ludusavi
       vulkan-tools # for vkcube
       glxinfo # for glxgears
+      bluez # for ps4 controller:
     ];
+
+    hardware.bluetooth = {
+      package = pkgs.bluez;
+    };
   };
 }

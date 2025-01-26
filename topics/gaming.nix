@@ -1,7 +1,7 @@
 {pkgs, ...}: {
   config = {
     environment.systemPackages = with pkgs; [
-      steam
+      (steam.override {extraPkgs = pkgs: [bluez];})
       lutris
       heroic
       mangohud

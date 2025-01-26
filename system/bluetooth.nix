@@ -9,7 +9,5 @@
       #   }
       # };
     };
-
-    services.blueman.enable = true;
   };
 }

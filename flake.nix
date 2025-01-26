@@ -58,6 +58,7 @@
           gpu.hybrid.enable = true;
           gpu.hybrid.nvidiaBusId = "PCI:1:0:0";
           gpu.hybrid.intelBusId = "PCI:6:0:0";
+          gpu.nvidia.driverVersion = "stable";
         }
         {
           environment.systemPackages = [alejandra.defaultPackage.${system}];

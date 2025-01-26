@@ -70,6 +70,8 @@ in {
         acpilight
         xclip
         dmenu
+        wl-clipboard-rs
+        wl-clipboard-x11
       ];
       services.xserver.xkb = {
         layout = "ch";

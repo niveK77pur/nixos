@@ -1,5 +1,14 @@
-{pkgs, ...}: {
-  config = {
+{
+  lib,
+  config,
+  ...
+}: let
+  modname = "bluetooth";
+in {
+  options.${modname} = {
+    enable = lib.mkEnableOption "${modname}";
+  };
+  config = lib.mkIf config.${modname}.enable {
     hardware.bluetooth = {
       enable = true;
       powerOnBoot = true;

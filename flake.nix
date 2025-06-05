@@ -28,7 +28,7 @@
             ./system/configuration.nix
             ./system/bluetooth.nix
             ./hardware-configuration.nix
-            # ./users/kevin.nix
+            ./users/user.nix
             ./topics
             ./hardware/gpu
           ]
@@ -70,6 +70,9 @@
       (makeSystem "nixos" [
         {
           display.enable = true;
+          user = {
+            name = "tuxkuni";
+          };
         }
       ])
     ];

@@ -11,79 +11,68 @@
   };
 
   outputs = {
-    self,
+    # self,
     nixpkgs,
     alejandra,
     ...
   }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+    #  {{{
+    makeSystem = systemName: modules: {
+      "${systemName}" = nixpkgs.lib.nixosSystem {
+        inherit system;
+
+        modules =
+          [
+            ./system/configuration.nix
+            ./system/bluetooth.nix
+            ./hardware-configuration.nix
+            # ./users/kevin.nix
+            ./topics
+            ./hardware/gpu
+          ]
+          ++ modules;
+
+        specialArgs = {
+          deviceName = "${systemName}";
+        };
+      };
+    }; #  }}}
   in {
-    nixosConfigurations.tuxedo = nixpkgs.lib.nixosSystem {
-      inherit system;
-      specialArgs = {
-        deviceName = "tuxedo"; # must match configuration name
-      };
-      modules = [
-        ./system/configuration.nix
-        ./hardware-configuration.nix
-        ./virt-manager.nix
-        ./users/kevin.nix
-        # ./hardware/gpu
+    nixosConfigurations = pkgs.lib.mergeAttrsList [
+      (makeSystem "tuxedo" [
         {
           display.enable = true;
-          # gpu.type = "amd";
         }
-        {
-          environment.systemPackages = [alejandra.defaultPackage.${system}];
-        }
-      ];
-    };
+      ])
 
-    nixosConfigurations.titan = nixpkgs.lib.nixosSystem {
-      inherit system;
-      specialArgs = {
-        deviceName = "titan"; # must match configuration name
-      };
-      modules = [
-        ./system/configuration.nix
-        ./system/bluetooth.nix
-        ./hardware-configuration.nix
-        ./users/kevin.nix
-        ./topics
-        ./hardware/gpu
+      (makeSystem "titan" [
         {
           display.enable = true;
-          gpu.type = "nvidia";
-          gpu.hybrid.enable = true;
-          gpu.hybrid.nvidiaBusId = "PCI:1:0:0";
-          gpu.hybrid.intelBusId = "PCI:6:0:0";
-          gpu.nvidia.driverVersion = "stable";
+          gpu = {
+            type = "nvidia";
+            hybrid = {
+              enable = true;
+              nvidiaBusId = "PCI:1:0:0";
+              intelBusId = "PCI:6:0:0";
+              driverVersion = "stable";
+            };
+          };
         }
-        {
-          environment.systemPackages = [alejandra.defaultPackage.${system}];
-        }
-      ];
-    };
+      ])
 
-    nixosConfigurations.vm = nixpkgs.lib.nixosSystem {
-      inherit system;
-      specialArgs = {
-        deviceName = "vm"; # must match configuration name
-      };
-      modules = [
-        ./system/configuration.nix
-        ./hardware-configuration.nix
-        ./virt-manager.nix
-        ./users/kevin.nix
+      (makeSystem "vm" [
         {
           display.enable = true;
         }
+      ])
+      (makeSystem "nixos" [
         {
-          environment.systemPackages = [alejandra.defaultPackage.${system}];
+          display.enable = true;
         }
-      ];
-    };
+      ])
+    ];
 
     devShells.${system}.default = pkgs.mkShell {
       name = "nixos";
@@ -97,3 +86,5 @@
     };
   };
 }
+# vim: fdm=marker
+

@@ -16,7 +16,7 @@ in {
     display-server.enable = lib.mkDefault true;
     kernel.enable = lib.mkDefault true;
     networking.enable = lib.mkDefault true;
-    nix.enable = lib.mkDefault true;
+    nix-config.enable = lib.mkDefault true;
     ssh.enable = lib.mkDefault true;
   };
 }

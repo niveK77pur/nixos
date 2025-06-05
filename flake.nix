@@ -3,17 +3,11 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-
-    alejandra = {
-      url = "github:kamadorueda/alejandra/3.0.0";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs = {
     # self,
     nixpkgs,
-    alejandra,
     ...
   }: let
     system = "x86_64-linux";
@@ -87,7 +81,7 @@
         pkgs.nixd
         pkgs.nil
         pkgs.statix
-        alejandra.defaultPackage.${system}
+        pkgs.alejandra
         pkgs.lazygit
       ];
     };

@@ -65,6 +65,8 @@
       (makeSystem "vm" [
         {
           display.enable = true;
+          services.qemuGuest.enable = true;
+          services.spice-vdagentd.enable = true;
         }
       ])
       (makeSystem "nixos" [
@@ -73,6 +75,8 @@
           user = {
             name = "tuxkuni";
           };
+          services.qemuGuest.enable = true;
+          services.spice-vdagentd.enable = true;
         }
       ])
     ];

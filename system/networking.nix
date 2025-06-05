@@ -1,19 +1,40 @@
-{deviceName, ...}: {
-  networking.hostName = deviceName; # Define your hostname.
-  # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+{
+  deviceName,
+  lib,
+  ...
+}: let
+  modname = "networking";
+in {
+  options.${modname} = {};
 
-  # Configure network proxy if necessary
-  # networking.proxy.default = "http://user:password@proxy:port/";
-  # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+  config = {
+    networking = {
+      hostName = deviceName;
 
-  # Enable networking
-  networking.networkmanager.enable = true;
-  networking.wireless.iwd.enable = true;
-  networking.networkmanager.wifi.backend = "iwd";
+      # Enable networking
+      wireless.iwd.enable = true;
+      networkmanager = {
+        enable = true;
+        wifi.backend = "iwd";
+      };
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
+      firewall = lib.mkMerge [
+        # TODO: only add if KDE Connect is enabled in NixOS
+        (lib.mkIf true {
+          allowedTCPPortRanges = [
+            {
+              from = 1714;
+              to = 1764;
+            } # KDE Connect
+          ];
+          allowedUDPPortRanges = [
+            {
+              from = 1714;
+              to = 1764;
+            } # KDE Connect
+          ];
+        })
+      ];
+    };
+  };
 }

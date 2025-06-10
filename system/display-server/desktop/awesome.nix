@@ -16,10 +16,7 @@ in {
       # https://nixos.wiki/wiki/Awesome
       xserver = {
         enable = true;
-        displayManager = {
-          sddm.enable = true;
-          defaultSession = "none+awesome";
-        };
+        displayManager.defaultSession = "none+awesome";
         windowManager.awesome = {
           enable = true;
           luaModules = with pkgs.luaPackages; [

@@ -4,7 +4,7 @@
 {pkgs, ...}: {
   imports = [
     ./bootloader.nix
-    ./display-server.nix
+    ./display-server
     ./networking.nix
     ./kernel.nix
     ./nix.nix

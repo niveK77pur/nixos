@@ -65,7 +65,7 @@
       ])
       (makeSystem "nixos" [
         {
-          display.enable = true;
+          display.cinnamon.enable = true;
           user = {
             name = "tuxkuni";
           };

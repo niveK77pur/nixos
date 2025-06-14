@@ -25,6 +25,7 @@ in {
       extraGroups = lib.concatLists [
         ["networkmanager" "wheel"]
         cfg.extraGroups
+        (lib.lists.optional config.audio.pulseaudio.enable "audio")
       ];
       shell = pkgs.fish;
     };

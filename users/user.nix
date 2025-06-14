@@ -22,7 +22,10 @@ in {
     programs.fish.enable = true;
     users.users."${cfg.name}" = {
       isNormalUser = true;
-      extraGroups = ["networkmanager" "wheel"] ++ cfg.extraGroups;
+      extraGroups = lib.concatLists [
+        ["networkmanager" "wheel"]
+        cfg.extraGroups
+      ];
       shell = pkgs.fish;
     };
   };

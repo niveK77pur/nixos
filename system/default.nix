@@ -11,11 +11,7 @@ in {
 
   config = lib.mkIf config.${modname}.enableAll {
     bluetooth.enable = lib.mkDefault true;
-    bootloader.enable = lib.mkDefault true;
-    configuration.enable = lib.mkDefault true;
-    display-server.enable = lib.mkDefault true;
-    kernel.enable = lib.mkDefault true;
-    networking.enable = lib.mkDefault true;
+    display.enable = lib.mkDefault true;
     nix-config.enable = lib.mkDefault true;
     ssh.enable = lib.mkDefault true;
   };

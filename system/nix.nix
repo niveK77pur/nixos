@@ -7,7 +7,7 @@
   cfg = config.${modname};
 in {
   options.${modname} = {
-    enable = lib.mkEnableOption "${modname}";
+    enable = lib.mkEnableOption "${modname}" // {default = true;};
   };
 
   config = lib.mkIf cfg.enable {

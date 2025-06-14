@@ -1,16 +1,4 @@
-# Edit this configuration file to define what should be installed on
-# your system.  Help is available in the configuration.nix(5) man page
-# and in the NixOS manual (accessible by running ‘nixos-help’).
-{pkgs, ...}: {
-  imports = [
-    ./bootloader.nix
-    ./display-server
-    ./networking.nix
-    ./kernel.nix
-    ./nix.nix
-    ./ssh.nix
-  ];
-
+_: {
   config = {
     # Set your time zone.
     time.timeZone = "Europe/Luxembourg";
@@ -34,8 +22,6 @@
     #   enable = true;
     #   enableSSHSupport = true;
     # };
-
-    # List services that you want to enable:
 
     # This value determines the NixOS release from which the default
     # settings for stateful data, like file locations and database versions

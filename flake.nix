@@ -19,8 +19,7 @@
 
         modules =
           [
-            ./system/configuration.nix
-            ./system/bluetooth.nix
+            ./system
             ./hardware-configuration.nix
             ./users/user.nix
             ./topics

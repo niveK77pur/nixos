@@ -1,4 +1,5 @@
 {
+  pkgs,
   lib,
   config,
   ...
@@ -13,9 +14,18 @@ in {
 
   options.audio = {
     enable = lib.mkEnableOption "audio";
+    enableTools = lib.mkEnableOption "audio";
   };
 
-  config = lib.mkIf cfg.enable {
-    audio.pipewire.enable = true;
-  };
+  config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
+      audio.pipewire.enable = true;
+    })
+
+    (lib.mkIf cfg.enableTools {
+      environment.systemPackages = [
+        pkgs.pavucontrol
+      ];
+    })
+  ];
 }

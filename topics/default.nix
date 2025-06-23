@@ -9,5 +9,6 @@
     ./fonts.nix
     ./coding.nix
     ./flatpak.nix
+    ./hm.nix
   ];
 }

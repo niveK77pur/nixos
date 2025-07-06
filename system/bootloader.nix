@@ -1,14 +1,21 @@
-{pkgs, ...}: {
-  # Bootloader GRUB.
-  # boot.loader.grub.enable = true;
-  # boot.loader.grub.device = "/dev/nvme0n1p1";
-  # boot.loader.grub.useOSProber = true;
+_: let
+  modname = "bootloader";
+in {
+  options.${modname} = {};
 
-  # Bootloader systemd-boot.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+  config = {
+    # Bootloader GRUB.
+    boot.loader.grub = {
+      enable = true;
+      device = "/dev/vda";
+      useOSProber = true;
+    };
 
-  # Kernel
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+    # Bootloader systemd-boot.
+    # boot.loader.systemd-boot.enable = true;
+    # boot.loader.efi.canTouchEfiVariables = true;
 
+    # Kernel
+    # boot.kernelPackages = pkgs.linuxPackages_latest;
+  };
 }

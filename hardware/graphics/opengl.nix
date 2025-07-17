@@ -1,8 +1,4 @@
-{
-  config,
-  lib,
-  ...
-}: {
+_: {
   config = {
     hardware.graphics = {
       enable = true;

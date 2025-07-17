@@ -1,4 +1,5 @@
 {
+  pkgs,
   lib,
   config,
   ...
@@ -10,7 +11,6 @@ in {
   };
 
   imports = [
-    ../graphics/opencl.nix
     ../graphics/vulkan.nix
   ];
 
@@ -19,5 +19,9 @@ in {
     boot.initrd.kernelModules = ["amdgpu"];
     services.xserver.enable = true;
     services.xserver.videoDrivers = ["amdgpu"];
+
+    hardware.opengl.extraPackages = [
+      pkgs.rocmPackages.clr.icd
+    ];
   };
 }

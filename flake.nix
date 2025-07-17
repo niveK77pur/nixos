@@ -55,6 +55,7 @@
               driverVersion = "stable";
             };
           };
+          hm.enable = true;
         }
       ])
 

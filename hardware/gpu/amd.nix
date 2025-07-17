@@ -3,15 +3,18 @@
   config,
   ...
 }: let
-  cfg = config.gpu;
-  gpuType = "amd";
+  cfg = config.gpu.amd;
 in {
+  options.gpu.amd = {
+    enable = lib.mkEnableOption "amd";
+  };
+
   imports = [
     ../graphics/opencl.nix
     ../graphics/vulkan.nix
   ];
 
-  config = lib.mkIf (cfg.type == gpuType) {
+  config = lib.mkIf cfg.enable {
     # drivers
     boot.initrd.kernelModules = ["amdgpu"];
     services.xserver.enable = true;

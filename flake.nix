@@ -46,13 +46,13 @@
             name = "kevin";
           };
           display.enable = true;
-          gpu = {
-            type = "nvidia";
+          gpu.nvidia = {
+            enable = true;
+            driverVersion = "stable";
             hybrid = {
               enable = true;
               nvidiaBusId = "PCI:1:0:0";
               intelBusId = "PCI:6:0:0";
-              driverVersion = "stable";
             };
           };
           hm.enable = true;

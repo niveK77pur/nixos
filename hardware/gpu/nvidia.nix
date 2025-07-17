@@ -4,10 +4,10 @@
   config,
   ...
 }: let
-  cfg = config.gpu;
-  gpuType = "nvidia";
+  cfg = config.gpu.nvidia;
 in {
   options.gpu.nvidia = {
+    enable = lib.mkEnableOption "nvidia";
     driverVersion = lib.mkOption {
       description = "Which NVIDIA driver to use";
       type = lib.types.enum [
@@ -23,11 +23,26 @@ in {
       ];
       default = "latest";
     };
+    hybrid = lib.mkOption {
+      type = lib.types.submodule {
+        options = {
+          enable = lib.mkEnableOption "Enable NVIDIA Optimus PRIME (necessary for laptops)";
+          intelBusId = lib.mkOption {
+            description = "Bus ID Value for iGPU";
+            type = lib.types.str;
+          };
+          nvidiaBusId = lib.mkOption {
+            description = "Bus ID Value for dGPU";
+            type = lib.types.str;
+          };
+        };
+      };
+    };
   };
 
   imports = [../graphics/opengl.nix];
 
-  config = lib.mkIf (cfg.type == gpuType) (lib.mkMerge [
+  config = lib.mkIf cfg.enable (lib.mkMerge [
     {
       # Enable OpenGL (TODO: replace with imports above)
       hardware.graphics = {
@@ -63,7 +78,7 @@ in {
         # accessible via `nvidia-settings`.
         nvidiaSettings = true;
 
-        package = config.boot.kernelPackages.nvidiaPackages.${cfg.nvidia.driverVersion};
+        package = config.boot.kernelPackages.nvidiaPackages.${cfg.driverVersion};
       };
     }
 

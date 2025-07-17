@@ -46,7 +46,10 @@
             name = "kevin";
           };
           bootloader.systemd.enable = true;
-          display.enable = true;
+          display = {
+            enable = true;
+            hyprland.enable = true;
+          };
           gpu.nvidia = {
             enable = true;
             driverVersion = "stable";

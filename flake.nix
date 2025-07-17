@@ -45,6 +45,7 @@
           user = {
             name = "kevin";
           };
+          bootloader.systemd.enable = true;
           display.enable = true;
           gpu.nvidia = {
             enable = true;
@@ -62,12 +63,14 @@
       (makeSystem "vm" [
         {
           display.enable = true;
+          bootloader.systemd.enable = true;
           services.qemuGuest.enable = true;
           services.spice-vdagentd.enable = true;
         }
       ])
       (makeSystem "nixos" [
         {
+          bootloader.grub.enable = true;
           display.cinnamon.enable = true;
           user = {
             name = "tuxkuni";

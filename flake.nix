@@ -42,6 +42,9 @@
 
       (makeSystem "titan" [
         {
+          user = {
+            name = "kevin";
+          };
           display.enable = true;
           gpu = {
             type = "nvidia";

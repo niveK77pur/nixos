@@ -16,13 +16,13 @@
   fileSystems."/" =
     { device = "/dev/disk/by-label/root";
       fsType = "btrfs";
-      options = [ "subvol=@root" ];
+      options = [ "subvol=@root" "compress=zstd" "noatime" ];
     };
 
   fileSystems."/nix" =
     { device = "/dev/disk/by-label/root";
       fsType = "btrfs";
-      options = [ "subvol=@nix" ];
+      options = [ "subvol=@nix" "compress=zstd" "noatime" ];
     };
 
   fileSystems."/boot" =
@@ -34,7 +34,7 @@
   fileSystems."/home" =
     { device = "/dev/disk/by-label/home";
       fsType = "btrfs";
-      options = [ "subvol=@home" ];
+      options = [ "subvol=@home" "compress=zstd" ];
     };
 
   swapDevices = [ ];

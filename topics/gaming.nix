@@ -1,5 +1,16 @@
-{pkgs, ...}: {
-  config = {
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}: let
+  cfg = config.gaming;
+in {
+  options.gaming = {
+    enable = lib.mkEnableOption "steam";
+  };
+
+  config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
       (steam.override {extraPkgs = pkgs: [bluez];})
       lutris

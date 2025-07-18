@@ -62,6 +62,7 @@
           hm.enable = true;
           geoclue2.enable = true;
           bluetooth.enable = true;
+          gaming.enable = true;
         }
       ])
 

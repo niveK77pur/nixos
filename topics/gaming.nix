@@ -12,7 +12,6 @@ in {
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
-      (steam.override {extraPkgs = pkgs: [bluez];})
       lutris
       heroic
       mangohud
@@ -24,6 +23,10 @@ in {
       glxinfo # for glxgears
       bluez # for ps4 controller:
     ];
+
+    programs.steam = {
+      enable = true;
+    };
 
     hardware.bluetooth = {
       package = pkgs.bluez;

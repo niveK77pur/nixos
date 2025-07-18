@@ -10,5 +10,6 @@
     ./coding.nix
     ./flatpak.nix
     ./hm.nix
+    ./geoclue2.nix
   ];
 }

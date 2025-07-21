@@ -19,5 +19,9 @@ in {
     };
     # enable screen-sharing on wlroots-based compositor
     xdg.portal.wlr.enable = true;
+    security.pam.services = {
+      hyprlock = {};
+      gtklock = {};
+    };
   };
 }

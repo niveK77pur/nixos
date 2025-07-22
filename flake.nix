@@ -50,6 +50,11 @@
             enable = true;
             hyprland.enable = true;
           };
+          audio = {
+            enableTools = true;
+            pipewire.enable = true;
+            jack.enable = true;
+          };
           gpu.nvidia = {
             enable = true;
             driverVersion = "stable";

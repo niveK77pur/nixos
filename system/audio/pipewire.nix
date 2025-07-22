@@ -10,8 +10,8 @@ in {
     enable = lib.mkEnableOption "pipewire";
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
       security.rtkit.enable = true;
       services.pipewire = {
         enable = true;
@@ -22,12 +22,12 @@ in {
         # If you want to use JACK applications, uncomment this
         #jack.enable = true;
       };
-    })
+    }
 
     (lib.mkIf config.audio.enableTools {
       environment.systemPackages = [
         pkgs.qpwgraph
       ];
     })
-  ];
+  ]);
 }

@@ -26,7 +26,7 @@ in {
 
     (lib.mkIf config.audio.enableTools {
       environment.systemPackages = [
-        pkgs.rPackages.qpgraph
+        pkgs.qpwgraph
       ];
     })
   ];

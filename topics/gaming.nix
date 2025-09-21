@@ -15,7 +15,6 @@ in {
       lutris
       heroic
       mangohud
-      gamemode
       gpu-screen-recorder
       gpu-screen-recorder-gtk
       ludusavi
@@ -25,6 +24,10 @@ in {
     ];
 
     programs.steam = {
+      enable = true;
+    };
+
+    programs.gamemode = {
       enable = true;
     };
 

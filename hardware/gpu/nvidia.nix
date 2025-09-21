@@ -27,6 +27,7 @@ in {
       type = lib.types.submodule {
         options = {
           enable = lib.mkEnableOption "Enable NVIDIA Optimus PRIME (necessary for laptops)";
+          withSyncMode = lib.mkEnableOption "Enable sync mode, otherwise enable offload mode";
           intelBusId = lib.mkOption {
             description = "Bus ID Value for iGPU";
             type = lib.types.str;
@@ -84,9 +85,12 @@ in {
 
     (lib.mkIf cfg.hybrid.enable {
       hardware.nvidia.prime = {
+        sync.enable = cfg.hybrid.withSyncMode;
         offload = {
-          enable = true;
-          enableOffloadCmd = true;
+          enable = !cfg.hybrid.withSyncMode;
+          enableOffloadCmd =
+            config.hardware.nvidia.prime.offload.enable
+            || config.hardware.nvidia.prime.reverseSync.enable;
         };
         # intelBusId = "${cfg.hybrid.intelBusId}";
         amdgpuBusId = "${cfg.hybrid.intelBusId}";

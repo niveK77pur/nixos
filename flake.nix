@@ -60,6 +60,7 @@
             driverVersion = "stable";
             hybrid = {
               enable = true;
+              withSyncMode = true;
               nvidiaBusId = "PCI:1:0:0";
               intelBusId = "PCI:6:0:0";
             };

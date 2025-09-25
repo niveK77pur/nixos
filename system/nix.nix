@@ -11,11 +11,20 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    nix.settings = {
-      experimental-features = [
-        "nix-command"
-        "flakes"
-      ];
+    nix = {
+      settings = {
+        experimental-features = [
+          "nix-command"
+          "flakes"
+        ];
+      };
+      optimise = {
+        automatic = true;
+      };
+      gc = {
+        automatic = true;
+        dates = "weekly";
+      };
     };
   };
 }

@@ -11,13 +11,38 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    # drivers
     boot.initrd.kernelModules = ["amdgpu"];
-    services.xserver.enable = true;
-    services.xserver.videoDrivers = ["amdgpu"];
 
-    hardware.opengl.extraPackages = [
-      pkgs.rocmPackages.clr.icd
+    services = {
+      xserver = {
+        enable = true;
+        videoDrivers = ["amdgpu"];
+      };
+      lact = {
+        enable = true;
+      };
+    };
+
+    environment.systemPackages = [
+      pkgs.clinfo # OpenCL
     ];
+
+    systemd.tmpfiles.rules = [
+      # HIP
+      "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}"
+    ];
+
+    hardware.graphics = {
+      enable = true; # OpenGL
+      enable32Bit = true; # Vulkan
+      extraPackages = [
+        pkgs.rocmPackages.clr.icd # OpenCL
+        pkgs.libvdpau-va-gl
+      ];
+    };
+    environment.sessionVariables = {
+      LIBVA_DRIVER_NAME = "radeonsi"; # VA-API
+      VDPAU_DRIVER = "radeonsi"; # VDPAU
+    };
   };
 }

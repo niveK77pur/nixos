@@ -55,16 +55,7 @@
             pipewire.enable = true;
             jack.enable = true;
           };
-          gpu.nvidia = {
-            enable = true;
-            driverVersion = "stable";
-            hybrid = {
-              enable = true;
-              withSyncMode = true;
-              nvidiaBusId = "PCI:1:0:0";
-              intelBusId = "PCI:6:0:0";
-            };
-          };
+          gpu.amd.enable = true;
           hm.enable = true;
           geoclue2.enable = true;
           bluetooth.enable = true;

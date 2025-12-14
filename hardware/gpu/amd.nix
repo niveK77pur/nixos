@@ -10,10 +10,6 @@ in {
     enable = lib.mkEnableOption "amd";
   };
 
-  imports = [
-    ../graphics/vulkan.nix
-  ];
-
   config = lib.mkIf cfg.enable {
     # drivers
     boot.initrd.kernelModules = ["amdgpu"];

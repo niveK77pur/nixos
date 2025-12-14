@@ -41,8 +41,6 @@ in {
     };
   };
 
-  imports = [../graphics/opengl.nix];
-
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
       # Enable OpenGL (TODO: replace with imports above)

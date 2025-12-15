@@ -19,7 +19,7 @@ in {
       gpu-screen-recorder-gtk
       ludusavi
       vulkan-tools # for vkcube
-      glxinfo # for glxgears
+      mesa-demos # for glxgears
       bluez # for ps4 controller:
     ];
 

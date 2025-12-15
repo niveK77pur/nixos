@@ -3,7 +3,7 @@
     environment.systemPackages = with pkgs; [
       lf
       git
-      aria
+      aria2
       lazygit
       fd
       starship

@@ -12,11 +12,12 @@ in {
     hardware.bluetooth = {
       enable = true;
       powerOnBoot = true;
-      # settings = {
-      #   General = {
-      #     Experimental = true; # to see battery charge
-      #   }
-      # };
+      settings = {
+        General = {
+          Experimental = true; # to see battery charge
+          FastConnectable = true;
+        };
+      };
     };
     services.blueman.enable = true;
   };

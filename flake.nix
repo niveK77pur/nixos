@@ -45,6 +45,10 @@
           user = {
             name = "kevin";
           };
+          hardware.keyboard.qmk = {
+            enable = true;
+            keychronSupport = true;
+          };
           bootloader.systemd.enable = true;
           display = {
             enable = true;

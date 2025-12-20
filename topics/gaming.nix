@@ -23,12 +23,19 @@ in {
       bluez # for ps4 controller:
     ];
 
-    programs.steam = {
-      enable = true;
-    };
+    programs = {
+      steam = {
+        enable = true;
+        gamescopeSession = {
+          enable = true;
+        };
+      };
 
-    programs.gamemode = {
-      enable = true;
+      gamemode.enable = true;
+
+      gamescope = {
+        enable = true;
+      };
     };
 
     hardware.bluetooth = {

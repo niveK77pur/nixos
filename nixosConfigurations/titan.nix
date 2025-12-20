@@ -3,10 +3,6 @@ _: [
     user = {
       name = "kevin";
     };
-    hardware.keyboard.qmk = {
-      enable = true;
-      keychronSupport = true;
-    };
     bootloader.systemd.enable = true;
     display = {
       enable = true;
@@ -22,5 +18,13 @@ _: [
     geoclue2.enable = true;
     bluetooth.enable = true;
     gaming.enable = true;
+  }
+  {
+    # Fix issue where launcher.keychron.com cannot connect to the keyboard for
+    # configuration
+    hardware.keyboard.qmk = {
+      enable = true;
+      keychronSupport = true;
+    };
   }
 ]

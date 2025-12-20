@@ -12,6 +12,7 @@
   }: let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+    inherit (pkgs) lib;
     #  {{{
     makeSystem = systemName: modules: {
       "${systemName}" = nixpkgs.lib.nixosSystem {
@@ -33,60 +34,11 @@
       };
     }; #  }}}
   in {
-    nixosConfigurations = pkgs.lib.mergeAttrsList [
-      (makeSystem "tuxedo" [
-        {
-          display.enable = true;
-        }
-      ])
-
-      (makeSystem "titan" [
-        {
-          user = {
-            name = "kevin";
-          };
-          hardware.keyboard.qmk = {
-            enable = true;
-            keychronSupport = true;
-          };
-          bootloader.systemd.enable = true;
-          display = {
-            enable = true;
-            hyprland.enable = true;
-          };
-          audio = {
-            enableTools = true;
-            pipewire.enable = true;
-            jack.enable = true;
-          };
-          gpu.amd.enable = true;
-          hm.enable = true;
-          geoclue2.enable = true;
-          bluetooth.enable = true;
-          gaming.enable = true;
-        }
-      ])
-
-      (makeSystem "vm" [
-        {
-          display.enable = true;
-          bootloader.systemd.enable = true;
-          services.qemuGuest.enable = true;
-          services.spice-vdagentd.enable = true;
-        }
-      ])
-      (makeSystem "nixos" [
-        {
-          bootloader.grub.enable = true;
-          display.cinnamon.enable = true;
-          user = {
-            name = "tuxkuni";
-          };
-          services.qemuGuest.enable = true;
-          services.spice-vdagentd.enable = true;
-        }
-      ])
-    ];
+    nixosConfigurations =
+      lib.mergeAttrsList
+      (map
+        (f: makeSystem (lib.removeSuffix ".nix" (baseNameOf f)) (pkgs.callPackage f {}))
+        (lib.fileset.toList ./nixosConfigurations));
 
     devShells.${system}.default = pkgs.mkShell {
       name = "nixos";

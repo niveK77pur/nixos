@@ -27,4 +27,7 @@ _: [
       keychronSupport = true;
     };
   }
+  {
+    services.tailscale.enable = true;
+  }
 ]

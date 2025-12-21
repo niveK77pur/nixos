@@ -1,4 +1,6 @@
-_: [
+_: let
+  tailscale_subnet = "100.64.0.0/10";
+in [
   {
     user = {
       name = "kevin";
@@ -37,8 +39,7 @@ _: [
       openFirewall = true;
       settings = {
         global = {
-          # Only allow tailscale hosts
-          "hosts allow" = "100.64.0.0/10 127.0.0.1 localhost";
+          "hosts allow" = "${tailscale_subnet} 127.0.0.1 localhost";
           "hosts deny" = "0.0.0.0/0";
           "security" = "user";
 
@@ -56,6 +57,38 @@ _: [
       };
     };
   }
+  # Configure NFS for sharing files {{{1
+  (let
+    nfs_root = "/srv/nfs";
+  in {
+    # TODO: Firewall to block NFS requests outside of tailscale?
+    fileSystems = {
+      "${nfs_root}/vinludens-videos" = {
+        device = "/home/kevin/Videos/Music_Recordings";
+        options = ["bind"];
+      };
+    };
+    # Restrict to NFSv4?
+    environment.etc."sysconfig/nfs".text = ''
+      RPCNFSDARGS="-N 2 -N 3 -U"
+    '';
+    services.nfs = {
+      settings = {
+        nfsd = {
+          # Restrict to NFSv4?
+          vers3 = "off";
+          vers4 = "on";
+        };
+      };
+      server = {
+        enable = true;
+        exports = ''
+          ${nfs_root} ${tailscale_subnet}(rw,fsid=root)
+          ${nfs_root}/vinludens-videos ${tailscale_subnet}(rw,sync)
+        '';
+      };
+    };
+  })
   #  }}}1
 ]
 # vim: fdm=marker

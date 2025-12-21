@@ -5,18 +5,12 @@
 }: let
   modname = "system";
 in {
-  imports = [
-    ./audio
-    ./bluetooth.nix
-    ./bootloader.nix
-    ./configuration.nix
-    ./display-server
-    ./kernel.nix
-    ./networking.nix
-    ./nix.nix
-    ./printing.nix
-    ./ssh.nix
-  ];
+  imports =
+    map
+    (file: ./. + "/${file}")
+    (lib.filter
+      (file: file != "default.nix")
+      (lib.attrNames (builtins.readDir ./.)));
 
   options.${modname} = {
     enableAll = lib.mkEnableOption "${modname}";

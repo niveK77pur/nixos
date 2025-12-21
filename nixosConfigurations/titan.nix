@@ -33,6 +33,7 @@ _: [
       enable = true;
       shares = {
         vinludens-videos = /home/kevin/Videos/Music_Recordings;
+        vinludens-sheets = /home/kevin/Documents/VinLudens-Sheets;
       };
     };
   }

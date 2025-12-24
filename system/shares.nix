@@ -80,7 +80,7 @@ in {
               ]
               ++ (
                 map
-                (name: "${nfs_root}/${name} ${tailscale_subnet}(rw,sync)")
+                (name: "${nfs_root}/${name} ${tailscale_subnet}(rw,sync,fsid=${builtins.hashString "md5" name})")
                 (lib.attrNames cfg.shares)
               )
             );

@@ -1,4 +1,7 @@
-_: [
+{
+  pkgs,
+  lib,
+}: [
   {
     user = {
       name = "kevin";
@@ -37,6 +40,30 @@ _: [
       };
     };
   }
+  (let
+    rustdesk = pkgs.rustdesk-flutter;
+  in {
+    # Manual steps to restrict to tailscale(?):
+    # 1. Open the RustDesk client application (here on the server)
+    # 2. Under "Security" settings "Enable direct IP access"
+    # 3. [Optional] Set a permanent password for unsupervised login
+    #    Note that unsupervised login does not work on wayland
+    services.tailscale.enable = true;
+    environment.systemPackages = [rustdesk];
+    services.rustdesk-server = {
+      # Somehow this service must be enabled, otherwise the permissions cannot
+      # be given in wayland. However, for a purely tailscale connectivity, we
+      # do not need the server, hence we disable everything.
+      enable = true;
+      signal.enable = false;
+      relay.enable = false;
+    };
+    # Under "Network" settings, under "ID/Relay server", sets "ID Server" to
+    # `127.0.0.1`. This effectively prevents access via the RustDesk ID.
+    system.activationScripts.rustdesk-server.text = ''
+      ${lib.getExe rustdesk} --config rustdesk--QfiIiOikXYsVmciwiIiojIpBXYiwiIiojI5V2aiwiIx4CMuAjL3ITMiojI0N3boJye--.exe
+    '';
+  })
 ]
 # vim: fdm=marker
 

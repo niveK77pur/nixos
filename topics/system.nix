@@ -21,6 +21,10 @@ in {
     services.locate = {
       enable = true;
       package = pkgs.mlocate;
+      prunePaths = [
+        "/nix/store"
+        "/nix/var/log/nix"
+      ];
     };
   };
 }

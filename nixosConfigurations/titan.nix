@@ -18,6 +18,7 @@
     };
     gpu.amd.enable = true;
     hm.enable = true;
+    nix-config.enable = true;
     geoclue2.enable = true;
     bluetooth.enable = true;
     gaming.enable = true;

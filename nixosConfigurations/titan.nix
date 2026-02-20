@@ -65,6 +65,10 @@
       ${lib.getExe rustdesk} --config rustdesk--QfiIiOikXYsVmciwiIiojIpBXYiwiIiojI5V2aiwiIx4CMuAjL3ITMiojI0N3boJye--.exe
     '';
   })
+  {
+    # See: https://wiki.nixos.org/wiki/USB_storage_devices
+    services.udisks2.enable = true;
+  }
 ]
 # vim: fdm=marker
 

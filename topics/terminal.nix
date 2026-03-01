@@ -3,6 +3,7 @@
     environment.systemPackages = with pkgs; [
       lf
       git
+      jujutsu
       aria2
       lazygit
       fd

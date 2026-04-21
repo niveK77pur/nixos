@@ -19,9 +19,15 @@ in {
           KbdInteractiveAuthentication = false;
           X11Forwarding = true;
           PermitRootLogin = "no";
+          MaxAuthTries = 3;
+          PerSourcePenalties = lib.concatStringsSep " " [
+            "authfail:3600s"
+            "crash:3600s"
+            "invaliduser:${5 * 60}s"
+            "max:${24 * 3600}s"
+          ];
         };
       };
-      fail2ban.enable = true;
       endlessh = {
         enable = true;
         port = 22;

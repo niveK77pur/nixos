@@ -36,8 +36,14 @@
     shares = {
       enable = true;
       shares = {
-        vinludens-videos = /home/kevin/Videos/Music_Recordings;
-        vinludens-sheets = /home/kevin/Documents/VinLudens-Sheets;
+        vinludens-videos = {
+          path = /home/kevin/Videos/Music_Recordings;
+          fsType = "btrfs";
+        };
+        vinludens-sheets = {
+          path = /home/kevin/Documents/VinLudens-Sheets;
+          fsType = "btrfs";
+        };
       };
     };
   }

@@ -1,6 +1,7 @@
 {
   lib,
   config,
+  options,
   ...
 }: let
   cfg = config.shares;
@@ -12,7 +13,15 @@ in {
     enableSamba = lib.mkEnableOption "samba-shares" // {default = true;};
     enableNfs = lib.mkEnableOption "nfs-shares" // {default = true;};
     shares = lib.mkOption {
-      type = lib.types.attrsOf lib.types.path;
+      type = lib.types.attrsOf (lib.types.submodule {
+        options = {
+          inherit (options.fileSystems.type.getSubOptions []) fsType;
+          path = lib.mkOption {
+            type = lib.types.path;
+            description = "Path to the folder to expose";
+          };
+        };
+      });
       default = {};
       description = "Shares and folders to be exposed";
       example = ''
@@ -44,7 +53,7 @@ in {
               };
             }
             (lib.mapAttrs (_: value: {
-                "path" = toString value;
+                "path" = toString value.path;
                 "read only" = "no";
                 "veto files" = "/.direnv/";
               })
@@ -59,8 +68,9 @@ in {
           lib.nameValuePair
           "${nfs_root}/${name}"
           {
-            device = toString value;
+            device = toString value.path;
             options = ["bind"];
+            inherit (value) fsType;
           })
         cfg.shares;
 

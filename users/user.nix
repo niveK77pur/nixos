@@ -8,7 +8,8 @@
 in {
   options.user = {
     name = lib.mkOption {
-      type = lib.types.str;
+      type = lib.types.nullOr lib.types.str;
+      default = null;
       description = "Name of the user";
     };
     extraGroups = lib.mkOption {
@@ -18,7 +19,7 @@ in {
     };
   };
 
-  config = {
+  config = lib.mkIf (cfg.name != null) {
     programs.fish.enable = true;
     users.users."${cfg.name}" = {
       isNormalUser = true;

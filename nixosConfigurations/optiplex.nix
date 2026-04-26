@@ -1,7 +1,10 @@
 _: [
   {
     bootloader.systemd.enable = true;
-    networking.enableWireless = false;
+    networking = {
+      enableWireless = false;
+      restrictTailscale = true;
+    };
 
     users.users.server = {isNormalUser = true;};
     nix-config.enable = true;

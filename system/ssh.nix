@@ -30,7 +30,7 @@ in {
       };
       endlessh = {
         enable = true;
-        openFirewall = true;
+        openFirewall = true; # WARN: Remove if locked behind tailscale?
       };
     };
   };

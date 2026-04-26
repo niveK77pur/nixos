@@ -37,7 +37,7 @@ in {
       (lib.mkIf cfg.enableSamba {
         services.samba = {
           enable = true;
-          openFirewall = true;
+          openFirewall = true; # WARN: Remove if locked behind tailscale?
           settings = lib.mkMerge [
             {
               global = {

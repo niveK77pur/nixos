@@ -8,6 +8,7 @@
 in {
   options.${modname} = {
     enableWireless = lib.mkEnableOption "networking wireless" // {default = true;};
+    restrictTailscale = lib.mkEnableOption "tailscale";
   };
 
   config = lib.mkMerge [
@@ -18,6 +19,20 @@ in {
           enable = true;
           wifi.backend = "iwd";
         };
+      };
+    })
+
+    (lib.mkIf cfg.restrictTailscale {
+      services.tailscale = {
+        enable = true;
+        openFirewall = true;
+      };
+      networking.firewall = {
+        enable = true;
+        trustedInterfaces = ["tailscale0"];
+        # allowPing = false;
+        allowedTCPPorts = [];
+        allowedUDPPorts = [];
       };
     })
   ];

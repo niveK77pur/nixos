@@ -8,7 +8,13 @@ _: [
 
     users.users.server = {isNormalUser = true;};
     nix-config.enable = true;
-
-    services.tailscale.enable = true;
+  }
+  {
+    services.freshrss = {
+      enable = true;
+      baseUrl = "http://optiplex";
+      authType = "none"; # TODO: Authenticate via OIDC
+      api.enable = true;
+    };
   }
 ]

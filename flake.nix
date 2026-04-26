@@ -24,7 +24,7 @@
               networking.hostName = systemName;
             }
             ./system
-            ./hardware-configuration.nix
+            ./hardware-configuration/${systemName}.nix
             ./users/user.nix
             ./topics
             ./hardware/gpu

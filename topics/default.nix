@@ -1,15 +1,10 @@
-{...}: {
+{lib, ...}: {
   imports = [
-    ./gaming.nix
-    ./media.nix
-    ./internet.nix
-    ./messaging.nix
-    ./terminal.nix
-    ./system.nix
-    ./fonts.nix
-    ./coding.nix
-    ./flatpak.nix
-    ./hm.nix
-    ./geoclue2.nix
+    ./base.nix
+    ./locate.nix
   ];
+
+  config = {
+    base.enable = lib.mkDefault true;
+  };
 }

@@ -1,5 +1,4 @@
 {
-  pkgs,
   lib,
   config,
   ...
@@ -16,6 +15,5 @@ in {
       xserver.enable = true;
       desktopManager.plasma6.enable = true;
     };
-    environment.systemPackages = lib.lists.optional config.topics.pass.enable pkgs.plasma-pass;
   };
 }

@@ -17,11 +17,10 @@
       jack.enable = true;
     };
     gpu.amd.enable = true;
-    hm.enable = true;
+    environment.systemPackages = [pkgs.home-manager];
     nix-config.enable = true;
-    geoclue2.enable = true;
+    services.geoclue2.enable = true;
     bluetooth.enable = true;
-    gaming.enable = true;
   }
   {
     # Fix issue where launcher.keychron.com cannot connect to the keyboard for

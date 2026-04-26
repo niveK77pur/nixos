@@ -18,6 +18,7 @@
     };
     gpu.amd.enable = true;
     environment.systemPackages = [pkgs.home-manager];
+    programs.steam.enable = true;
     nix-config.enable = true;
     services.geoclue2.enable = true;
     bluetooth.enable = true;

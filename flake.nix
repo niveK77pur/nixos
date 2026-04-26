@@ -20,6 +20,9 @@
 
         modules =
           [
+            {
+              networking.hostName = systemName;
+            }
             ./system
             ./hardware-configuration.nix
             ./users/user.nix
@@ -29,7 +32,7 @@
           ++ modules;
 
         specialArgs = {
-          deviceName = "${systemName}";
+          inherit systemName;
         };
       };
     }; #  }}}

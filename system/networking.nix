@@ -5,8 +5,6 @@ in {
 
   config = {
     networking = {
-      hostName = deviceName;
-
       # Enable networking
       wireless.iwd.enable = true;
       networkmanager = {

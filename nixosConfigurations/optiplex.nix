@@ -1,4 +1,10 @@
-_: [
+_: let
+  domain = "optiplex";
+  freshrss = rec {
+    port = 8080;
+    baseUrl = "http://${domain}:${toString port}";
+  };
+in [
   {
     bootloader.systemd.enable = true;
     networking = {
@@ -10,11 +16,23 @@ _: [
     nix-config.enable = true;
   }
   {
-    services.freshrss = {
-      enable = true;
-      baseUrl = "http://optiplex";
-      authType = "none"; # TODO: Authenticate via OIDC
-      api.enable = true;
+    services = {
+      freshrss = {
+        enable = true;
+        inherit (freshrss) baseUrl;
+        authType = "none"; # TODO: Authenticate via OIDC
+        api.enable = true;
+      };
+      # TODO: Swap out `freshrss` with `config.services.freshrss.virtualHost`
+      nginx.virtualHosts."freshrss" = {
+        serverAliases = [domain];
+        listen = [
+          {
+            addr = "0.0.0.0";
+            inherit (freshrss) port;
+          }
+        ];
+      };
     };
   }
 ]

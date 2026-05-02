@@ -1,12 +1,17 @@
 {
   lib,
   config,
+  pkgs,
   ...
 }: let
   rootDomain = "kevinbiewesch.com";
   freshrss = rec {
     domain = "rss.${rootDomain}";
     baseUrl = "https://${domain}";
+  };
+  iam = rec {
+    domain = "idm.${rootDomain}";
+    origin = "https://${domain}";
   };
 in
   lib.mkMerge [
@@ -44,6 +49,9 @@ in
             extraDomainNames = [
               freshrss.domain
             ];
+          };
+          ${iam.domain} = {
+            inherit (config.services.nginx) group;
           };
         };
       };
@@ -107,9 +115,47 @@ in
                   icon = "${freshrss.baseUrl}/favicon.ico";
                   url = freshrss.baseUrl;
                 }
+                {
+                  title = "Kanidm";
+                  icon = "${iam.origin}/pkg/img/favicon.png";
+                  url = iam.origin;
+                }
               ];
             }
           ];
+        };
+      };
+    }
+    {
+      # Allow reading of the ACME certificate files by server
+      users.users.kanidm.extraGroups = [config.services.nginx.group];
+
+      services = {
+        kanidm = {
+          package = pkgs.kanidm_1_9;
+
+          server = {
+            enable = true;
+            settings = {
+              inherit (iam) domain origin;
+              online_backup.versions = 10;
+              tls_chain = "/var/lib/acme/${iam.domain}/fullchain.pem";
+              tls_key = "/var/lib/acme/${iam.domain}/key.pem";
+            };
+          };
+
+          client = {
+            enable = true;
+            settings = {
+              uri = iam.origin;
+            };
+          };
+        };
+
+        nginx.virtualHosts.${iam.domain} = {
+          forceSSL = true;
+          useACMEHost = iam.domain;
+          locations."/".proxyPass = "https://${config.services.kanidm.server.settings.bindaddress}";
         };
       };
     }

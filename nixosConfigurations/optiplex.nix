@@ -13,7 +13,10 @@ in
         restrictTailscale = true;
       };
 
-      users.users.server = {isNormalUser = true;};
+      users.users.server = {
+        isNormalUser = true;
+        extraGroups = ["wheel"];
+      };
       nix-config.enable = true;
     }
     {

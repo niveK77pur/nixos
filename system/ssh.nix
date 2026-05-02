@@ -23,8 +23,8 @@ in {
           PerSourcePenalties = lib.concatStringsSep " " [
             "authfail:3600s"
             "crash:3600s"
-            "invaliduser:${5 * 60}s"
-            "max:${24 * 3600}s"
+            "invaliduser:${toString (5 * 60)}s"
+            "max:${toString (24 * 3600)}s"
           ];
         };
       };

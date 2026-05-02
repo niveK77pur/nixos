@@ -1,5 +1,4 @@
 {lib, ...}: let
-  domain = "optiplex";
   rootDomain = "kevinbiewesch.com";
   freshrss = rec {
     domain = "rss.${rootDomain}";

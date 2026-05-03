@@ -3,11 +3,16 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = {
     # self,
     nixpkgs,
+    agenix,
     ...
   }: let
     system = "x86_64-linux";
@@ -19,8 +24,10 @@
         inherit system;
 
         modules = [
+          agenix.nixosModules.default
           {
             networking.hostName = systemName;
+            environment.systemPackages = [agenix.packages.${system}.default];
           }
           ./system
           ./hardware-configuration/${systemName}.nix

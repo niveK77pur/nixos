@@ -36,7 +36,7 @@ in
         enable = true;
         virtualHost = {
           enableNginx = true;
-          inherit domain;
+          domain = rootDomain;
         };
         settings = {
           appConfig = {

@@ -1,4 +1,5 @@
-_: [
+{lib, ...}:
+lib.mkMerge [
   {
     display.enable = true;
     bootloader.systemd.enable = true;

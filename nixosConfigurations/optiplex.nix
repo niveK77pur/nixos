@@ -1,4 +1,5 @@
-_: [
+{lib, ...}:
+lib.mkMerge [
   {
     bootloader.systemd.enable = true;
     networking = {

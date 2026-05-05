@@ -14,22 +14,21 @@
     pkgs = nixpkgs.legacyPackages.${system};
     inherit (pkgs) lib;
     #  {{{
-    makeSystem = systemName: modules: {
+    makeSystem = systemName: modulePath: {
       "${systemName}" = nixpkgs.lib.nixosSystem {
         inherit system;
 
-        modules =
-          [
-            {
-              networking.hostName = systemName;
-            }
-            ./system
-            ./hardware-configuration/${systemName}.nix
-            ./users/user.nix
-            ./topics
-            ./hardware/gpu
-          ]
-          ++ modules;
+        modules = [
+          {
+            networking.hostName = systemName;
+          }
+          ./system
+          ./hardware-configuration/${systemName}.nix
+          ./users/user.nix
+          ./topics
+          ./hardware/gpu
+          modulePath
+        ];
 
         specialArgs = {
           inherit systemName;
@@ -40,7 +39,7 @@
     nixosConfigurations =
       lib.mergeAttrsList
       (map
-        (f: makeSystem (lib.removeSuffix ".nix" (baseNameOf f)) (pkgs.callPackage f {}))
+        (f: makeSystem (lib.removeSuffix ".nix" (baseNameOf f)) f)
         (lib.fileset.toList ./nixosConfigurations));
 
     devShells.${system}.default = pkgs.mkShell {

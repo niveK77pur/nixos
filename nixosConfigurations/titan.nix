@@ -1,7 +1,9 @@
 {
   pkgs,
   lib,
-}: [
+  ...
+}:
+lib.mkMerge [
   {
     user = {
       name = "kevin";

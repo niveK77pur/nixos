@@ -1,8 +1,12 @@
-{lib, ...}: let
+{
+  lib,
+  config,
+  ...
+}: let
   rootDomain = "kevinbiewesch.com";
   freshrss = rec {
     domain = "rss.${rootDomain}";
-    baseUrl = "http://${domain}";
+    baseUrl = "https://${domain}";
   };
 in
   lib.mkMerge [
@@ -18,6 +22,41 @@ in
         extraGroups = ["wheel"];
       };
       nix-config.enable = true;
+    }
+    {
+      age = {
+        secrets.cloudflare.file = ../secrets/optiplex-cloudflare.age;
+        identityPaths = ["/root/.ssh/agenix"];
+      };
+      security.acme = {
+        acceptTerms = true;
+        defaults = {
+          email = "kevinbiewesch@yahoo.fr";
+          # Configures DNS-01 challenge using cloudflare API token
+          dnsProvider = "cloudflare";
+          credentialFiles = {
+            CLOUDFLARE_DNS_API_TOKEN_FILE = config.age.secrets.cloudflare.path;
+          };
+        };
+        certs = {
+          ${rootDomain} = {
+            inherit (config.services.nginx) group;
+            extraDomainNames = [
+              freshrss.domain
+            ];
+          };
+        };
+      };
+      services.nginx.virtualHosts = {
+        ${rootDomain} = {
+          forceSSL = true;
+          useACMEHost = rootDomain;
+        };
+        ${freshrss.domain} = {
+          forceSSL = true;
+          useACMEHost = rootDomain;
+        };
+      };
     }
     {
       services = {

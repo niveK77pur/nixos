@@ -1,5 +1,0 @@
-_: [
-  {
-    display.enable = true;
-  }
-]

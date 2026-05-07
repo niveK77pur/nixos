@@ -3,4 +3,5 @@ let
   optiplex = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAeBupai8MyCDzp4Nva3diEHeVs8y20I9l8uR0hLZcRX root@optiplex";
 in {
   "optiplex-cloudflare.age".publicKeys = [titan optiplex];
+  "optiplex-kanidm-freshrss-oauth2.age".publicKeys = [titan optiplex];
 }

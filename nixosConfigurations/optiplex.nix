@@ -12,6 +12,12 @@
   iam = rec {
     domain = "idm.${rootDomain}";
     origin = "https://${domain}";
+    oauth2-client = {
+      freshrss = {
+        name = "freshrss";
+        group = "freshrss_access";
+      };
+    };
   };
 in
   lib.mkMerge [
@@ -67,6 +73,7 @@ in
       };
     }
     {
+      age.secrets.oauth2-freshrss.file = ../secrets/optiplex-kanidm-freshrss-oauth2.age;
       services = {
         freshrss = {
           enable = true;
@@ -75,7 +82,28 @@ in
           authType = "none"; # TODO: Authenticate via OIDC
           api.enable = true;
         };
+        # Specify environment variables for FreshRSS by "hooking" into the
+        # module's internal `env-vars` variable.
+        phpfpm.pools.${config.services.freshrss.pool}.phpEnv = {
+          OIDC_ENABLED = "1";
+          OIDC_PROVIDER_METADATA_URL = "https://${iam.domain}/oauth2/openid/${iam.oauth2-client.freshrss.name}/.well-known/openid-configuration";
+          OIDC_CLIENT_ID = iam.oauth2-client.freshrss.name;
+          OIDC_CLIENT_SECRET = "$OIDC_CLIENT_SECRET";
+          # OIDC_CLIENT_CRYPTO_KEY = null;
+          # OIDC_REMOTE_USER_CLAIM = null;
+          OIDC_SCOPES =
+            lib.concatStringsSep " "
+            config.services.kanidm.provision.systems.oauth2.${iam.oauth2-client.freshrss.name}.scopeMaps.${iam.oauth2-client.freshrss.group};
+          # OIDC_X_FORWARDED_HEADERS = null;
+          # OIDC_SESSION_INACTIVITY_TIMEOUT = null;
+          # OIDC_SESSION_MAX_DURATION = null;
+          # OIDC_SESSION_TYPE = null;
+        };
       };
+      # Ensure the secret is available to FreshRSS; this "injects" into the
+      # systemd service being created by the phpfpm pool being created by the
+      # FreshRSS module.
+      systemd.services."phpfpm-${config.services.freshrss.pool}".serviceConfig.EnvironmentFile = config.age.secrets.oauth2-freshrss.path;
     }
     {
       services.dashy = {
@@ -141,6 +169,21 @@ in
               online_backup.versions = 10;
               tls_chain = "/var/lib/acme/${iam.domain}/fullchain.pem";
               tls_key = "/var/lib/acme/${iam.domain}/key.pem";
+            };
+          };
+
+          provision = {
+            enable = true;
+            groups.${iam.oauth2-client.freshrss.group} = {};
+            systems.oauth2 = {
+              ${iam.oauth2-client.freshrss.name} = {
+                displayName = "FreshRSS";
+                originLanding = freshrss.baseUrl;
+                originUrl = "${freshrss.baseUrl}/i/oidc/";
+                scopeMaps = {
+                  ${iam.oauth2-client.freshrss.group} = ["openid" "email" "profile"];
+                };
+              };
             };
           };
 

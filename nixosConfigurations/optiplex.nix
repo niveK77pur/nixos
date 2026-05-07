@@ -8,10 +8,20 @@
   freshrss = rec {
     domain = "rss.${rootDomain}";
     baseUrl = "https://${domain}";
+    oauth2-proxy = rec {
+      port = 4180;
+      addr = "http://127.0.0.1:${toString port}";
+    };
   };
   iam = rec {
     domain = "idm.${rootDomain}";
     origin = "https://${domain}";
+    oauth2-client = {
+      freshrss = {
+        name = "freshrss";
+        group = "freshrss_access";
+      };
+    };
   };
 in
   lib.mkMerge [
@@ -67,13 +77,79 @@ in
       };
     }
     {
+      age.secrets.oauth2-freshrss.file = ../secrets/optiplex-kanidm-freshrss-oauth2.age;
+      age.secrets.oauth2-freshrss-cookie.file = ../secrets/optiplex-oauth2-proxy-freshrss-cookie.age;
       services = {
         freshrss = {
           enable = true;
           inherit (freshrss) baseUrl;
           virtualHost = freshrss.domain;
-          authType = "none"; # TODO: Authenticate via OIDC
+          authType = "http_auth";
           api.enable = true;
+        };
+        nginx.virtualHosts.${config.services.freshrss.virtualHost} = {
+          locations = {
+            "/oauth2/" = {
+              proxyPass = freshrss.oauth2-proxy.addr;
+              extraConfig = ''
+                proxy_set_header Host                    $host;
+                proxy_set_header X-Real-IP               $remote_addr;
+                proxy_set_header X-Auth-Request-Redirect $request_uri;
+              '';
+            };
+            "= /oauth2/auth" = {
+              proxyPass = freshrss.oauth2-proxy.addr;
+              extraConfig = ''
+                proxy_set_header Host             $host;
+                proxy_set_header X-Real-IP        $remote_addr;
+                proxy_set_header X-Forwarded-Uri  $request_uri;
+                proxy_set_header Content-Length   "";
+                proxy_pass_request_body           off;
+              '';
+            };
+            "@oauth2_signin" = {
+              return = "302 /oauth2/sign_in?rd=$scheme://$host$request_uri";
+            };
+          };
+          locations."~ ^.+?\\.php(/.*)?$".extraConfig = ''
+            auth_request /oauth2/auth;
+            error_page 401 = @oauth2_signin;
+
+            auth_request_set $user $upstream_http_x_auth_request_user;
+            fastcgi_param REMOTE_USER $user;
+          '';
+        };
+      };
+      systemd.services.oauth2-proxy-freshrss = rec {
+        wantedBy = ["multi-user.target"];
+        wants = ["network-online.target"];
+        requires = ["kanidm.service"];
+        after = wants ++ requires;
+        serviceConfig = {
+          User = "freshrss";
+          Restart = "always";
+          ExecStart = lib.concatStringsSep " " [
+            (lib.getExe pkgs.oauth2-proxy)
+            "--http-address=${freshrss.oauth2-proxy.addr}"
+            "--provider=oidc"
+            "--client-id=${iam.oauth2-client.freshrss.name}"
+            "--client-secret-file=%d/client-secret"
+            "--cookie-secret-file=%d/cookie-secret"
+            "--oidc-issuer-url=https://${iam.domain}/oauth2/openid/${iam.oauth2-client.freshrss.name}"
+            "--redirect-url=${config.services.kanidm.provision.systems.oauth2.${iam.oauth2-client.freshrss.name}.originUrl}"
+            "--email-domain=*"
+            "--scope='${lib.concatStringsSep " " config.services.kanidm.provision.systems.oauth2.${iam.oauth2-client.freshrss.name}.scopeMaps.${iam.oauth2-client.freshrss.group}}'"
+            "--reverse-proxy=true"
+            "--trusted-proxy-ip=127.0.0.1/32" # assuming --http-address is on 127.0.0.1
+            "--trusted-proxy-ip=::1/128"
+            "--whitelist-domain=${freshrss.domain}"
+            "--set-xauthrequest=true"
+            "--code-challenge-method=S256" # required by kanidm
+          ];
+          LoadCredential = [
+            "client-secret:${config.age.secrets.oauth2-freshrss.path}"
+            "cookie-secret:${config.age.secrets.oauth2-freshrss-cookie.path}"
+          ];
         };
       };
     }
@@ -141,6 +217,21 @@ in
               online_backup.versions = 10;
               tls_chain = "/var/lib/acme/${iam.domain}/fullchain.pem";
               tls_key = "/var/lib/acme/${iam.domain}/key.pem";
+            };
+          };
+
+          provision = {
+            enable = true;
+            groups.${iam.oauth2-client.freshrss.group} = {};
+            systems.oauth2 = {
+              ${iam.oauth2-client.freshrss.name} = {
+                displayName = "FreshRSS";
+                originLanding = freshrss.baseUrl;
+                originUrl = "${freshrss.baseUrl}/oauth2/callback";
+                scopeMaps = {
+                  ${iam.oauth2-client.freshrss.group} = ["openid" "email" "profile"];
+                };
+              };
             };
           };
 

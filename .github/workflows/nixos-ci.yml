@@ -1,0 +1,42 @@
+name: NixOS CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  list-configs:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.discover.outputs.configs }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Discover nixosConfigurations
+        id: discover
+        run: |
+          echo "configs=$(nix eval .#nixosConfigurations --apply 'builtins.attrNames' --json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: list-configs
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        config: ${{ fromJSON(needs.list-configs.outputs.configs) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+
+      - name: Build ${{ matrix.config }}
+        run: |
+          nix build ".#nixosConfigurations.${{ matrix.config }}.config.system.build.toplevel"

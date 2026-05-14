@@ -5,7 +5,7 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
   };
 
-  outputs = {
+  outputs = inputs @ {
     # self,
     nixpkgs,
     ...
@@ -31,7 +31,7 @@
         ];
 
         specialArgs = {
-          inherit systemName;
+          inherit systemName inputs;
         };
       };
     }; #  }}}

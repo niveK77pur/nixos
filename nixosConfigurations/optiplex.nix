@@ -1,4 +1,5 @@
 {
+  inputs,
   lib,
   config,
   ...
@@ -131,17 +132,10 @@ in
       services.syncthing = {
         enable = true;
         settings = {
-          devices = {
-            optiplex.id = "7PHZLSE-HMGUG2V-BL3JAMO-NGFUTFM-HFKEBSQ-SHAHSAP-RALJWPK-RG65XQS";
-            supernote = {
-              id = "5O5GDWG-HIR54JQ-SFAZRVF-OIGZ6BJ-R5S56TE-WOBISJL-HTXVB6G-H26A6Q2";
-              addresses = lib.singleton "tcp://100.127.82.92:22000";
-            };
-          };
-          folders = {
+          inherit (inputs.self.syncthing) devices;
+          folders = lib.recursiveUpdate inputs.self.syncthing.folders {
             SN-Note = {
               path = "~/supernote/Note";
-              id = "8uvfz-kien7";
               devices = with config.services.syncthing.settings.devices; [
                 optiplex.name
                 supernote.name
@@ -149,10 +143,16 @@ in
             };
             SN-MyStyle = {
               path = "~/supernote/MyStyle";
-              id = "fpehy-c1mjv";
               devices = with config.services.syncthing.settings.devices; [
                 optiplex.name
                 supernote.name
+              ];
+            };
+            VinLudens-Sheets = {
+              path = "~/vinludens/sheets";
+              devices = with config.services.syncthing.settings.devices; [
+                optiplex.name
+                tuxedo.name
               ];
             };
           };

@@ -35,24 +35,28 @@
         };
       };
     }; #  }}}
-  in {
-    nixosConfigurations =
-      lib.mergeAttrsList
-      (map
-        (f: makeSystem (lib.removeSuffix ".nix" (baseNameOf f)) f)
-        (lib.fileset.toList ./nixosConfigurations));
+  in
+    {
+      nixosConfigurations =
+        lib.mergeAttrsList
+        (map
+          (f: makeSystem (lib.removeSuffix ".nix" (baseNameOf f)) f)
+          (lib.fileset.toList ./nixosConfigurations));
 
-    devShells.${system}.default = pkgs.mkShell {
-      name = "nixos";
-      packages = [
-        pkgs.nixd
-        pkgs.nil
-        pkgs.statix
-        pkgs.alejandra
-        pkgs.lazygit
-      ];
-    };
-  };
+      devShells.${system}.default = pkgs.mkShell {
+        name = "nixos";
+        packages = [
+          pkgs.nixd
+          pkgs.nil
+          pkgs.statix
+          pkgs.alejandra
+          pkgs.lazygit
+        ];
+      };
+    }
+    // (builtins.listToAttrs (lib.map
+      (f: lib.nameValuePair (lib.removeSuffix ".nix" (baseNameOf f)) (import f))
+      (lib.fileset.toList ./outputs)));
 }
 # vim: fdm=marker
 

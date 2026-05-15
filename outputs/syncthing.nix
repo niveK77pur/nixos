@@ -12,6 +12,10 @@
       id = "QZSWKKG-XWMA7ZF-7DSR6QE-AGM4O2T-TEBBFJI-PKPT63S-MITT4FZ-QGEVTAA";
       address = ["tcp://100.74.132.26:22000"];
     };
+    titan = {
+      id = "2QXPQSO-LHIYXWD-UVXGR6P-KFNEU5E-6SI3YAV-T47GWUI-L72R3D7-TVPRAAO";
+      address = ["tcp://100.102.201.102:22000"];
+    };
   };
 
   folders = {

@@ -31,6 +31,12 @@
       options = [ "subvol=freshrss" "compress=zstd" ];
     };
 
+  fileSystems."/var/lib/syncthing" =
+    { device = "/dev/disk/by-label/NIXROOT";
+      fsType = "btrfs";
+      options = [ "subvol=syncthing" "compress=zstd" ];
+    };
+
   fileSystems."/nix" =
     { device = "/dev/disk/by-label/NIXROOT";
       fsType = "btrfs";

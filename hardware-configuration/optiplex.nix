@@ -25,6 +25,12 @@
       options = [ "subvol=home" "compress=zstd" ];
     };
 
+  fileSystems."/var/lib/freshrss" =
+    { device = "/dev/disk/by-label/NIXROOT";
+      fsType = "btrfs";
+      options = [ "subvol=freshrss" "compress=zstd" ];
+    };
+
   fileSystems."/nix" =
     { device = "/dev/disk/by-label/NIXROOT";
       fsType = "btrfs";

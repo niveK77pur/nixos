@@ -5,8 +5,6 @@
   ...
 }: let
   cfg = config.backup;
-
-  btrfs = lib.getExe pkgs.btrfs-progs;
 in {
   options.backup = {
     enable = lib.mkEnableOption "backup";
@@ -48,57 +46,58 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable (lib.mkMerge (lib.flatten [
-    {
-      assertions = lib.flatten (lib.mapAttrsToList (name: locCfg: [
-          {
-            assertion = locCfg.borgOpts != null -> locCfg.destinations != {};
-            message = "`backup.locations.${name}.destinations` must be given if `backup.locations.${name}.borgOpts` is given.";
-          }
-          {
-            assertion = locCfg.borgOpts != null -> !(locCfg.borgOpts ? repo);
-            message = "`backup.locations.${name}.borgOpts.repo` is managed by the backup module; set `backup.locations.${name}.destinations` instead.";
-          }
-          {
-            assertion = locCfg.borgOpts != null -> !(locCfg.borgOpts ? paths);
-            message = "`backup.locations.${name}.borgOpts.paths` is managed by the backup module; set `backup.locations.${name}.path` instead.";
-          }
-          {
-            assertion = locCfg.borgOpts != null -> (locCfg.borgOpts ? startAt);
-            message = "`backup.locations.${name}.borgOpts.startAt` is required.";
-          }
-          {
-            assertion = locCfg.snapperOpts != null -> !(locCfg.snapperOpts ? SUBVOLUME);
-            message = "`backup.locations.${name}.snapperOpts.SUBVOLUME` is managed by the backup module; set `backup.locations.${name}.path` instead.";
-          }
-        ])
-        cfg.locations);
-    }
-    (lib.mapAttrsToList (group: locCfg: (lib.mkMerge (lib.flatten [
-        (lib.mkIf (locCfg.snapperOpts != null) {
-          services.snapper.configs.${group} = locCfg.snapperOpts // {SUBVOLUME = locCfg.path;};
-        })
+  config = lib.mkIf cfg.enable {
+    assertions = lib.flatten (lib.mapAttrsToList (
+        name: locCfg:
+          (lib.optionals (locCfg.borgOpts != null) [
+            {
+              assertion = locCfg.destinations != {};
+              message = "`backup.locations.${name}.destinations` must be given if `backup.locations.${name}.borgOpts` is given.";
+            }
+            {
+              assertion = !(locCfg.borgOpts ? repo);
+              message = "`backup.locations.${name}.borgOpts.repo` is managed by the backup module; set `backup.locations.${name}.destinations` instead.";
+            }
+            {
+              assertion = !(locCfg.borgOpts ? paths);
+              message = "`backup.locations.${name}.borgOpts.paths` is managed by the backup module; set `backup.locations.${name}.path` instead.";
+            }
+            {
+              assertion = locCfg.borgOpts ? startAt;
+              message = "`backup.locations.${name}.borgOpts.startAt` is required.";
+            }
+          ])
+          ++ (lib.optionals (locCfg.snapperOpts != null) [
+            {
+              assertion = !(locCfg.snapperOpts ? SUBVOLUME);
+              message = "`backup.locations.${name}.snapperOpts.SUBVOLUME` is managed by the backup module; set `backup.locations.${name}.path` instead.";
+            }
+          ])
+      )
+      cfg.locations);
 
-        (lib.mkIf (locCfg.borgOpts != null) (let
-          runUnitName = "borg-run-${group}";
-          prepareUnitName = "borg-prepare-${group}";
-          cleanupUnitName = "borg-cleanup-${group}";
-          borgbackupUnitName = destname: "borgbackup-job-${group}-${destname}";
+    services.snapper.configs =
+      lib.concatMapAttrs (
+        group: locCfg:
+          lib.optionalAttrs (locCfg.snapperOpts != null) {
+            ${group} = locCfg.snapperOpts // {SUBVOLUME = locCfg.path;};
+          }
+      )
+      cfg.locations;
 
-          borgbackupJobUnits = map (destname: "${borgbackupUnitName destname}.service") (builtins.attrNames locCfg.destinations);
-        in
-          lib.mkMerge (lib.flatten [
-            (lib.mapAttrsToList (destname: destination: {
-                services.borgbackup.jobs."${group}-${destname}" =
+    services.borgbackup.jobs =
+      lib.concatMapAttrs (
+        group: locCfg:
+          lib.optionalAttrs (locCfg.borgOpts != null) (
+            lib.mapAttrs' (
+              destname: destination:
+                lib.nameValuePair "${group}-${destname}" (
                   locCfg.borgOpts
                   // {
-                    # NOTE: This path should point to the btrfs snapshot instead.
-                    # To avoid borg backups including the location to the btrfs
-                    # snapshot, we shall `cd` into the snapshot so that the "root"
-                    # of the backup is scoped to the folder to be backed up. This
-                    # is a simple trick to avoid restoring backups into where btrfs
-                    # snapshots would land. This is something minor/major to be
-                    # aware of when restoring backups though.
+                    # NOTE: We snapshot to `borgSnapshotPath` and `cd` into it
+                    # so that borg archive entries are relative (./foo/bar.txt
+                    # rather than /the/full/snapshot/path/foo/bar.txt). On
+                    # restore: `cd /target && borg extract repo::archive`.
                     paths = ["."];
                     preHook =
                       (locCfg.borgOpts.preHook or "")
@@ -107,82 +106,103 @@ in {
                       '';
                     repo = destination;
                     startAt = []; # Delegate starting to our custom systemd setup
-                  };
+                  }
+                )
+            )
+            locCfg.destinations
+          )
+      )
+      cfg.locations;
 
-                # Hook into and enhance services.borgbackup.jobs created module
-                systemd.services.${borgbackupUnitName destname} = {
+    systemd = lib.foldl' lib.recursiveUpdate {} (lib.mapAttrsToList (
+        group: locCfg: let
+          runUnitName = "borg-run-${group}";
+          prepareUnitName = "borg-prepare-${group}";
+          cleanupUnitName = "borg-cleanup-${group}";
+          borgbackupUnitName = destname: "borgbackup-job-${group}-${destname}";
+          borgbackupJobUnits =
+            map (destname: "${borgbackupUnitName destname}.service")
+            (builtins.attrNames locCfg.destinations);
+        in
+          lib.optionalAttrs (locCfg.borgOpts != null) {
+            targets.${runUnitName} = {
+              description = "Borg backup run for ${group}";
+              wants =
+                [
+                  "${prepareUnitName}.service"
+                  "${cleanupUnitName}.service"
+                ]
+                ++ borgbackupJobUnits;
+            };
+
+            timers.${runUnitName} = {
+              description = "Borg backup timer for ${group}";
+              wantedBy = ["timers.target"];
+              timerConfig = {
+                Unit = "${runUnitName}.target";
+                Persistent = locCfg.borgOpts.persistentTimer or true;
+                OnCalendar = locCfg.borgOpts.startAt;
+              };
+            };
+
+            services = let
+              btrfs = lib.getExe pkgs.btrfs-progs;
+            in
+              {
+                ${prepareUnitName} = {
+                  description = "Borg prepare snapshot for ${group}";
                   serviceConfig.Type = "oneshot";
                   partOf = ["${runUnitName}.target"];
-                  requires = ["${prepareUnitName}.service"];
-                  after = ["${prepareUnitName}.service"];
-                };
-              })
-              locCfg.destinations)
+                  script = ''
+                    if ! ${btrfs} subvolume show ${locCfg.path} &>/dev/null; then
+                      echo "ASSERTION: ${locCfg.path} must be a btrfs subvolume" >&2
+                      exit 1
+                    fi
 
-            {
-              systemd = {
-                targets."${runUnitName}" = {
-                  description = "Borg backup run for ${group}";
-                  wants = ["${prepareUnitName}.service" "${cleanupUnitName}.service"] ++ borgbackupJobUnits;
-                };
+                    mkdir -p "${dirOf locCfg.borgSnapshotPath}"
 
-                timers."${runUnitName}" = {
-                  description = "Borg backup timer for ${group}";
-                  wantedBy = ["timers.target"];
-                  timerConfig = {
-                    Unit = "${runUnitName}.target";
-                    Persistent = locCfg.borgOpts.persistentTimer or true;
-                    OnCalendar = locCfg.borgOpts.startAt;
-                  };
+                    # Reclaim any orphan snapshot from a prior crashed run.
+                    if [ -e "${locCfg.borgSnapshotPath}" ]; then
+                      ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
+                    fi
+
+                    ${btrfs} subvolume snapshot -r ${locCfg.path} ${locCfg.borgSnapshotPath}
+                  '';
                 };
 
-                services = {
-                  ${prepareUnitName} = {
-                    description = "Borg prepare snapshot for ${group}";
+                ${cleanupUnitName} = {
+                  description = "Borg cleanup snapshot for ${group}";
+                  serviceConfig.Type = "oneshot";
+                  after = ["${prepareUnitName}.service"] ++ borgbackupJobUnits;
+                  script = ''
+                    if [ -e "${locCfg.borgSnapshotPath}" ]; then
+                      ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
+                    fi
+                  '';
+                  # WARN: We must manually deactivate the target as systemd
+                  # does not do this automatically when all its jobs complete.
+                  # Failing to do this would render our backup pipeline stale.
+                  # Cleanup is the last thing to run in our borgbackup
+                  # pipeline, so this is the right place to mark the target as
+                  # complete.
+                  postStop = ''
+                    ${pkgs.systemd}/bin/systemctl --no-block stop ${runUnitName}.target
+                  '';
+                };
+              }
+              # Hook into and enhance services.borgbackup.jobs created module
+              // lib.mapAttrs' (
+                destname: _:
+                  lib.nameValuePair (borgbackupUnitName destname) {
                     serviceConfig.Type = "oneshot";
                     partOf = ["${runUnitName}.target"];
-                    script = ''
-                      if ! ${btrfs} subvolume show ${locCfg.path} &>/dev/null; then
-                        echo "ASSERTION: ${locCfg.path} must be a btrfs subvolume" >&2
-                        exit 1
-                      fi
-
-                      mkdir -p "${dirOf locCfg.borgSnapshotPath}"
-
-                      # The snapshot path is meant for temporary snapshots;
-                      # delete if one already exists here.
-                      if [ -e "${locCfg.borgSnapshotPath}" ]; then
-                        ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
-                      fi
-
-                      ${btrfs} subvolume snapshot -r ${locCfg.path} ${locCfg.borgSnapshotPath}
-                    '';
-                  };
-
-                  ${cleanupUnitName} = {
-                    description = "Borg cleanup snapshot for ${group}";
-                    serviceConfig.Type = "oneshot";
-                    after = ["${prepareUnitName}.service"] ++ borgbackupJobUnits;
-                    script = ''
-                      if [ -e "${locCfg.borgSnapshotPath}" ]; then
-                        ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
-                      fi
-                    '';
-                    # WARN: We must manually deactivate the target as systemd
-                    # does not do this automatically when all its jobs
-                    # complete. Failing to do this would render our backup
-                    # pipeline stale. The cleanup should be the last thing to
-                    # run in our borgbackup pipeline, so this is the right
-                    # place to mark the target as complete.
-                    postStop = ''
-                      ${pkgs.systemd}/bin/systemctl --no-block stop ${runUnitName}.target
-                    '';
-                  };
-                };
-              };
-            }
-          ])))
-      ])))
-      cfg.locations)
-  ]));
+                    requires = ["${prepareUnitName}.service"];
+                    after = ["${prepareUnitName}.service"];
+                  }
+              )
+              locCfg.destinations;
+          }
+      )
+      cfg.locations);
+  };
 }

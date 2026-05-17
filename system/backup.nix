@@ -76,14 +76,17 @@ in {
       )
       cfg.locations);
 
-    services.snapper.configs =
-      lib.concatMapAttrs (
-        group: locCfg:
-          lib.optionalAttrs (locCfg.snapperOpts != null) {
-            ${group} = locCfg.snapperOpts // {SUBVOLUME = locCfg.path;};
-          }
-      )
-      cfg.locations;
+    services.snapper = {
+      persistentTimer = true;
+      configs =
+        lib.concatMapAttrs (
+          group: locCfg:
+            lib.optionalAttrs (locCfg.snapperOpts != null) {
+              ${group} = locCfg.snapperOpts // {SUBVOLUME = locCfg.path;};
+            }
+        )
+        cfg.locations;
+    };
 
     services.borgbackup.jobs =
       lib.concatMapAttrs (

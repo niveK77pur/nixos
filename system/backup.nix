@@ -117,95 +117,98 @@ in {
       )
       cfg.locations;
 
-    systemd = lib.foldl' lib.recursiveUpdate {} (lib.mapAttrsToList (
-        group: locCfg: let
-          runUnitName = "borg-run-${group}";
-          prepareUnitName = "borg-prepare-${group}";
-          cleanupUnitName = "borg-cleanup-${group}";
-          borgbackupUnitName = destname: "borgbackup-job-${group}-${destname}";
-          borgbackupJobUnits =
-            map (destname: "${borgbackupUnitName destname}.service")
-            (builtins.attrNames locCfg.destinations);
-        in
-          lib.optionalAttrs (locCfg.borgOpts != null) {
-            targets.${runUnitName} = {
-              description = "Borg backup run for ${group}";
-              wants =
-                [
-                  "${prepareUnitName}.service"
-                  "${cleanupUnitName}.service"
-                ]
-                ++ borgbackupJobUnits;
-            };
-
-            timers.${runUnitName} = {
-              description = "Borg backup timer for ${group}";
-              wantedBy = ["timers.target"];
-              timerConfig = {
-                Unit = "${runUnitName}.target";
-                Persistent = locCfg.borgOpts.persistentTimer or true;
-                OnCalendar = locCfg.borgOpts.startAt;
+    systemd = lib.mkMerge [
+      # Systemd options for borg
+      (lib.foldl' lib.recursiveUpdate {} (lib.mapAttrsToList (
+          group: locCfg: let
+            runUnitName = "borg-run-${group}";
+            prepareUnitName = "borg-prepare-${group}";
+            cleanupUnitName = "borg-cleanup-${group}";
+            borgbackupUnitName = destname: "borgbackup-job-${group}-${destname}";
+            borgbackupJobUnits =
+              map (destname: "${borgbackupUnitName destname}.service")
+              (builtins.attrNames locCfg.destinations);
+          in
+            lib.optionalAttrs (locCfg.borgOpts != null) {
+              targets.${runUnitName} = {
+                description = "Borg backup run for ${group}";
+                wants =
+                  [
+                    "${prepareUnitName}.service"
+                    "${cleanupUnitName}.service"
+                  ]
+                  ++ borgbackupJobUnits;
               };
-            };
 
-            services = let
-              btrfs = lib.getExe pkgs.btrfs-progs;
-            in
-              {
-                ${prepareUnitName} = {
-                  description = "Borg prepare snapshot for ${group}";
-                  serviceConfig.Type = "oneshot";
-                  partOf = ["${runUnitName}.target"];
-                  script = ''
-                    if ! ${btrfs} subvolume show ${locCfg.path} &>/dev/null; then
-                      echo "ASSERTION: ${locCfg.path} must be a btrfs subvolume" >&2
-                      exit 1
-                    fi
-
-                    mkdir -p "${dirOf locCfg.borgSnapshotPath}"
-
-                    # Reclaim any orphan snapshot from a prior crashed run.
-                    if [ -e "${locCfg.borgSnapshotPath}" ]; then
-                      ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
-                    fi
-
-                    ${btrfs} subvolume snapshot -r ${locCfg.path} ${locCfg.borgSnapshotPath}
-                  '';
+              timers.${runUnitName} = {
+                description = "Borg backup timer for ${group}";
+                wantedBy = ["timers.target"];
+                timerConfig = {
+                  Unit = "${runUnitName}.target";
+                  Persistent = locCfg.borgOpts.persistentTimer or true;
+                  OnCalendar = locCfg.borgOpts.startAt;
                 };
+              };
 
-                ${cleanupUnitName} = {
-                  description = "Borg cleanup snapshot for ${group}";
-                  serviceConfig.Type = "oneshot";
-                  after = ["${prepareUnitName}.service"] ++ borgbackupJobUnits;
-                  script = ''
-                    if [ -e "${locCfg.borgSnapshotPath}" ]; then
-                      ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
-                    fi
-                  '';
-                  # WARN: We must manually deactivate the target as systemd
-                  # does not do this automatically when all its jobs complete.
-                  # Failing to do this would render our backup pipeline stale.
-                  # Cleanup is the last thing to run in our borgbackup
-                  # pipeline, so this is the right place to mark the target as
-                  # complete.
-                  postStop = ''
-                    ${pkgs.systemd}/bin/systemctl --no-block stop ${runUnitName}.target
-                  '';
-                };
-              }
-              # Hook into and enhance services.borgbackup.jobs created module
-              // lib.mapAttrs' (
-                destname: _:
-                  lib.nameValuePair (borgbackupUnitName destname) {
+              services = let
+                btrfs = lib.getExe pkgs.btrfs-progs;
+              in
+                {
+                  ${prepareUnitName} = {
+                    description = "Borg prepare snapshot for ${group}";
                     serviceConfig.Type = "oneshot";
                     partOf = ["${runUnitName}.target"];
-                    requires = ["${prepareUnitName}.service"];
-                    after = ["${prepareUnitName}.service"];
-                  }
-              )
-              locCfg.destinations;
-          }
-      )
-      cfg.locations);
+                    script = ''
+                      if ! ${btrfs} subvolume show ${locCfg.path} &>/dev/null; then
+                        echo "ASSERTION: ${locCfg.path} must be a btrfs subvolume" >&2
+                        exit 1
+                      fi
+
+                      mkdir -p "${dirOf locCfg.borgSnapshotPath}"
+
+                      # Reclaim any orphan snapshot from a prior crashed run.
+                      if [ -e "${locCfg.borgSnapshotPath}" ]; then
+                        ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
+                      fi
+
+                      ${btrfs} subvolume snapshot -r ${locCfg.path} ${locCfg.borgSnapshotPath}
+                    '';
+                  };
+
+                  ${cleanupUnitName} = {
+                    description = "Borg cleanup snapshot for ${group}";
+                    serviceConfig.Type = "oneshot";
+                    after = ["${prepareUnitName}.service"] ++ borgbackupJobUnits;
+                    script = ''
+                      if [ -e "${locCfg.borgSnapshotPath}" ]; then
+                        ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
+                      fi
+                    '';
+                    # WARN: We must manually deactivate the target as systemd
+                    # does not do this automatically when all its jobs complete.
+                    # Failing to do this would render our backup pipeline stale.
+                    # Cleanup is the last thing to run in our borgbackup
+                    # pipeline, so this is the right place to mark the target as
+                    # complete.
+                    postStop = ''
+                      ${pkgs.systemd}/bin/systemctl --no-block stop ${runUnitName}.target
+                    '';
+                  };
+                }
+                # Hook into and enhance services.borgbackup.jobs created module
+                // lib.mapAttrs' (
+                  destname: _:
+                    lib.nameValuePair (borgbackupUnitName destname) {
+                      serviceConfig.Type = "oneshot";
+                      partOf = ["${runUnitName}.target"];
+                      requires = ["${prepareUnitName}.service"];
+                      after = ["${prepareUnitName}.service"];
+                    }
+                )
+                locCfg.destinations;
+            }
+        )
+        cfg.locations))
+    ];
   };
 }

@@ -26,6 +26,7 @@ in {
       zellij
       ripgrep
       file
+      viddy
     ];
   };
 }

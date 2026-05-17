@@ -30,6 +30,29 @@ in
       programs.nix-index-database.comma.enable = true;
     }
     {
+      backup = {
+        enable = true;
+        locations = {
+          freshrss = {
+            path = config.services.freshrss.dataDir;
+            destinations = {
+              local = "/var/lib/borgbackup/freshrss";
+            };
+            snapperOpts.TIMELINE_CREATE = true;
+            borgOpts.encryption.mode = "none";
+          };
+          syncthing = {
+            path = config.services.syncthing.dataDir;
+            destinations = {
+              local = "/var/lib/borgbackup/syncthing";
+            };
+            snapperOpts.TIMELINE_CREATE = true;
+            borgOpts.encryption.mode = "none";
+          };
+        };
+      };
+    }
+    {
       age = {
         secrets.cloudflare.file = ../secrets/optiplex-cloudflare.age;
         identityPaths = ["/root/.ssh/agenix"];

@@ -118,6 +118,14 @@ in {
       cfg.locations;
 
     systemd = lib.mkMerge [
+      # Systemd options for snapper
+      {
+        # We must prepare the subvolume for snapper
+        tmpfiles.rules =
+          lib.mapAttrsToList (_: locCfg: "v ${locCfg.path}/.snapshots 0770 root root")
+          (lib.filterAttrs (n: v: v.snapperOpts != null) cfg.locations);
+      }
+
       # Systemd options for borg
       (lib.foldl' lib.recursiveUpdate {} (lib.mapAttrsToList (
           group: locCfg: let

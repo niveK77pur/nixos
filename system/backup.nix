@@ -2,6 +2,7 @@
   lib,
   pkgs,
   config,
+  options,
   ...
 }: let
   cfg = config.backup;
@@ -61,10 +62,6 @@ in {
             {
               assertion = !(locCfg.borgOpts ? paths);
               message = "`backup.locations.${name}.borgOpts.paths` is managed by the backup module; set `backup.locations.${name}.path` instead.";
-            }
-            {
-              assertion = locCfg.borgOpts ? startAt;
-              message = "`backup.locations.${name}.borgOpts.startAt` is required.";
             }
           ])
           ++ (lib.optionals (locCfg.snapperOpts != null) [
@@ -151,7 +148,7 @@ in {
               timerConfig = {
                 Unit = "${runUnitName}.target";
                 Persistent = locCfg.borgOpts.persistentTimer or true;
-                OnCalendar = locCfg.borgOpts.startAt;
+                OnCalendar = locCfg.borgOpts.startAt or (options.services.borgbackup.jobs.type.getSubOptions []).startAt.default;
               };
             };
 

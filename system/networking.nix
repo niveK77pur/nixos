@@ -34,6 +34,7 @@ in {
         allowedTCPPorts = [];
         allowedUDPPorts = [];
       };
+      services.resolved.enable = true;
     })
   ];
 }

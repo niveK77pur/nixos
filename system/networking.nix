@@ -26,6 +26,7 @@ in {
       services.tailscale = {
         enable = true;
         openFirewall = true;
+        useRoutingFeatures = "server";
       };
       networking.firewall = {
         enable = true;

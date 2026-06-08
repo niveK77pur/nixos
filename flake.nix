@@ -29,7 +29,6 @@
 
         modules = [
           agenix.nixosModules.default
-          inputs.nix-index-database.nixosModules.default
           {
             networking.hostName = systemName;
             environment.systemPackages = [agenix.packages.${system}.default];

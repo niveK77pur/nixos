@@ -27,7 +27,7 @@ in
         extraGroups = ["wheel"];
       };
       nix-config.enable = true;
-      programs.nix-index-database.comma.enable = true;
+      base.withComma = true;
     }
     {
       backup = {

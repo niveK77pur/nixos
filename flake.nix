@@ -7,6 +7,10 @@
       url = "github:ryantm/agenix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    nix-index-database = {
+      url = "github:nix-community/nix-index-database";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs @ {
@@ -25,6 +29,7 @@
 
         modules = [
           agenix.nixosModules.default
+          inputs.nix-index-database.nixosModules.default
           {
             networking.hostName = systemName;
             environment.systemPackages = [agenix.packages.${system}.default];

@@ -21,14 +21,16 @@ in {
 
   config = lib.mkIf (cfg.name != null) {
     programs.fish.enable = true;
-    users.users."${cfg.name}" = {
-      isNormalUser = true;
-      extraGroups = lib.concatLists [
-        ["networkmanager" "wheel"]
-        cfg.extraGroups
-        (lib.lists.optional config.audio.pulseaudio.enable "audio")
-      ];
-      shell = pkgs.fish;
+    users = {
+      defaultUserShell = pkgs.fish;
+      users."${cfg.name}" = {
+        isNormalUser = true;
+        extraGroups = lib.concatLists [
+          ["networkmanager" "wheel"]
+          cfg.extraGroups
+          (lib.lists.optional config.audio.pulseaudio.enable "audio")
+        ];
+      };
     };
   };
 }

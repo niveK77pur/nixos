@@ -1,5 +1,6 @@
 {
   inputs,
+  pkgs,
   lib,
   config,
   ...
@@ -22,9 +23,13 @@ in
         restrictTailscale = true;
       };
 
-      users.users.server = {
-        isNormalUser = true;
-        extraGroups = ["wheel"];
+      programs.fish.enable = true;
+      users = {
+        defaultUserShell = pkgs.fish;
+        users.server = {
+          isNormalUser = true;
+          extraGroups = ["wheel"];
+        };
       };
       nix-config.enable = true;
       base.withComma = true;

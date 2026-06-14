@@ -185,6 +185,13 @@ in
                 titan.name
               ];
             };
+            Aegis = {
+              path = "~/aegis";
+              devices = with config.services.syncthing.settings.devices; [
+                optiplex.name
+                zenfone.name
+              ];
+            };
           };
         };
       };

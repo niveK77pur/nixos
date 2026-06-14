@@ -198,4 +198,34 @@ in
       services.nginx.virtualHosts.${syncthing.domain}.locations."/".proxyPass =
         "https://" + config.services.syncthing.guiAddress;
     }
+    (let
+      supernote-tool = pkgs.callPackage ../packages/supernote-tool.nix {};
+      supernote-recursive-conversion = pkgs.callPackage ../packages/supernote-recursive-conversion/package.nix {inherit supernote-tool;};
+      snNotePath = builtins.replaceStrings ["~"] [config.services.syncthing.dataDir] config.services.syncthing.settings.folders.SN-Note.path;
+      dataDir = "/var/lib/supernote-recursive-conversion";
+    in {
+      systemd.services.supernote-recursive-conversion = {
+        description = "Map supernote .note files to PDF";
+        wantedBy = ["multi-user.target"];
+        after = ["network.target"];
+        script = lib.concatStringsSep " " [
+          (lib.getExe pkgs.watchexec)
+          "--watch ${lib.escapeShellArg snNotePath}"
+          "--exts note"
+          "--on-busy-update queue"
+          "--debounce 1s"
+          # watchexec hangs on running the command because it cannot find a
+          # shell. We make our command self-sufficient with a shebang.
+          "--shell none"
+          "--"
+          "${supernote-recursive-conversion}/bin/supernote-recursive-conversion"
+          "--input-dir ${lib.escapeShellArg snNotePath}"
+          "--output-dir ${lib.escapeShellArg "${dataDir}/Note"}"
+          "--shadb ${lib.escapeShellArg "${dataDir}/shadb"}"
+        ];
+        serviceConfig = {
+          Restart = "on-failure";
+        };
+      };
+    })
   ]

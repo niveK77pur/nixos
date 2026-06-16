@@ -19,8 +19,9 @@
   supernote-recursive-conversion = pkgs.callPackage ../packages/supernote-recursive-conversion/package.nix {inherit supernote-tool;};
   snNotePath = builtins.replaceStrings ["~"] [config.services.syncthing.dataDir] config.services.syncthing.settings.folders.SN-Note.path;
   snDataDir = "/var/lib/supernote-recursive-conversion";
-  snOutDir = "${snDataDir}/Note";
-  snShaDB = "${snDataDir}/shadb";
+  snCacheDir = "/var/cache/supernote-recursive-conversion";
+  snOutDir = snDataDir;
+  snShaDB = "${snCacheDir}/shadb";
 in
   lib.mkMerge [
     {
@@ -236,6 +237,10 @@ in
         ];
         serviceConfig = {
           Restart = "on-failure";
+          Group = lib.mkIf config.services.syncthing.enable config.services.syncthing.group;
+          CacheDirectory = baseNameOf snDataDir;
+          StateDirectory = baseNameOf snDataDir;
+          StateDirectoryMode = "2775";
         };
       };
     }

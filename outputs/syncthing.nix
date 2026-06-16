@@ -23,6 +23,7 @@
   };
 
   folders = {
+    SN-Note-PDF.id = "peedi-tzoyl";
     SN-Note.id = "8uvfz-kien7";
     SN-MyStyle.id = "fpehy-c1mjv";
     VinLudens-Sheets.id = "Vinludens-Sheets";

@@ -170,6 +170,15 @@ in
         settings = {
           inherit (inputs.self.syncthing) devices;
           folders = lib.recursiveUpdate inputs.self.syncthing.folders {
+            SN-Note-PDF = {
+              path = snOutDir;
+              type = "sendonly";
+              devices = with config.services.syncthing.settings.devices; [
+                optiplex.name
+                tuxedo.name
+                titan.name
+              ];
+            };
             SN-Note = {
               path = "~/supernote/Note";
               devices = with config.services.syncthing.settings.devices; [

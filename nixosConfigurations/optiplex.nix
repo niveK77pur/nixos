@@ -14,6 +14,13 @@
     domain = "sync.${rootDomain}";
     guiAddress = "https://${domain}";
   };
+
+  supernote-tool = pkgs.callPackage ../packages/supernote-tool.nix {};
+  supernote-recursive-conversion = pkgs.callPackage ../packages/supernote-recursive-conversion/package.nix {inherit supernote-tool;};
+  snNotePath = builtins.replaceStrings ["~"] [config.services.syncthing.dataDir] config.services.syncthing.settings.folders.SN-Note.path;
+  snDataDir = "/var/lib/supernote-recursive-conversion";
+  snOutDir = "${snDataDir}/Note";
+  snShaDB = "${snDataDir}/shadb";
 in
   lib.mkMerge [
     {
@@ -198,12 +205,7 @@ in
       services.nginx.virtualHosts.${syncthing.domain}.locations."/".proxyPass =
         "https://" + config.services.syncthing.guiAddress;
     }
-    (let
-      supernote-tool = pkgs.callPackage ../packages/supernote-tool.nix {};
-      supernote-recursive-conversion = pkgs.callPackage ../packages/supernote-recursive-conversion/package.nix {inherit supernote-tool;};
-      snNotePath = builtins.replaceStrings ["~"] [config.services.syncthing.dataDir] config.services.syncthing.settings.folders.SN-Note.path;
-      dataDir = "/var/lib/supernote-recursive-conversion";
-    in {
+    {
       systemd.services.supernote-recursive-conversion = {
         description = "Map supernote .note files to PDF";
         wantedBy = ["multi-user.target"];
@@ -220,12 +222,12 @@ in
           "--"
           "${supernote-recursive-conversion}/bin/supernote-recursive-conversion"
           "--input-dir ${lib.escapeShellArg snNotePath}"
-          "--output-dir ${lib.escapeShellArg "${dataDir}/Note"}"
-          "--shadb ${lib.escapeShellArg "${dataDir}/shadb"}"
+          "--output-dir ${lib.escapeShellArg snOutDir}"
+          "--shadb ${lib.escapeShellArg snShaDB}"
         ];
         serviceConfig = {
           Restart = "on-failure";
         };
       };
-    })
+    }
   ]

@@ -14,6 +14,10 @@
     domain = "sync.${rootDomain}";
     guiAddress = "https://${domain}";
   };
+  glances = rec {
+    location = "glances";
+    hostname = "https://${rootDomain}/${location}";
+  };
 
   supernote-tool = pkgs.callPackage ../packages/supernote-tool.nix {};
   supernote-recursive-conversion = pkgs.callPackage ../packages/supernote-recursive-conversion/package.nix {inherit supernote-tool;};
@@ -118,51 +122,71 @@ in
       };
     }
     {
-      services.dashy = {
-        enable = true;
-        virtualHost = {
-          enableNginx = true;
-          domain = rootDomain;
-        };
-        settings = {
-          appConfig = {
-            defaultOpeningMethod = "sametab";
-            preventWriteToDisk = true;
-            preventLocalSave = true;
-            disableConfigurationForNonAdmin = true;
-            disableUpdateChecks = true;
+      services = {
+        glances.enable = true;
+        nginx.virtualHosts.${rootDomain}.locations."/${glances.location}/".proxyPass = "http://127.0.0.1:${toString config.services.glances.port}/";
+        dashy = {
+          enable = true;
+          virtualHost = {
+            enableNginx = true;
+            domain = rootDomain;
           };
-          pageInfo = {
-            title = "OptiPlex";
-            logo = "https://avatars.githubusercontent.com/u/10981161?v=4";
-            navLinks = [
+          settings = {
+            appConfig = {
+              defaultOpeningMethod = "sametab";
+              preventWriteToDisk = true;
+              preventLocalSave = true;
+              disableConfigurationForNonAdmin = true;
+              disableUpdateChecks = true;
+            };
+            pageInfo = {
+              title = "OptiPlex";
+              logo = "https://avatars.githubusercontent.com/u/10981161?v=4";
+              navLinks = [
+                {
+                  title = "niveK77pur";
+                  path = "https://github.com/niveK77pur";
+                }
+                {
+                  title = "VinLudens GH";
+                  path = "https://github.com/VinLudens";
+                }
+              ];
+            };
+            sections = [
               {
-                title = "niveK77pur";
-                path = "https://github.com/niveK77pur";
+                name = "Services";
+                items = [
+                  {
+                    title = "FreshRSS";
+                    icon = "${freshrss.baseUrl}/favicon.ico";
+                    url = freshrss.baseUrl;
+                  }
+                  {
+                    title = "Syncthing";
+                    icon = "${syncthing.guiAddress}/assets/img/favicon-default.png";
+                    url = syncthing.guiAddress;
+                  }
+                  {
+                    title = "Glances";
+                    icon = "${glances.hostname}/static/favicon.ico";
+                    url = glances.hostname;
+                  }
+                ];
               }
               {
-                title = "VinLudens GH";
-                path = "https://github.com/VinLudens";
+                name = "System Information";
+                widgets = map (w: w // {options.hostname = glances.hostname;}) [
+                  {type = "gl-alerts";}
+                  {type = "gl-cpu-history";}
+                  {type = "gl-mem-history";}
+                  {type = "gl-network-traffic";}
+                  {type = "gl-cpu-temp";}
+                  {type = "gl-disk-space";}
+                ];
               }
             ];
           };
-          sections = [
-            {
-              name = "Services";
-              items = [
-                {
-                  title = "FreshRSS";
-                  icon = "${freshrss.baseUrl}/favicon.ico";
-                  url = freshrss.baseUrl;
-                }
-                {
-                  title = "Syncthing";
-                  icon = "${syncthing.guiAddress}/assets/img/favicon-default.png";
-                  url = syncthing.guiAddress;
-                }
-              ];
-            }
-          ];
         };
       };
     }

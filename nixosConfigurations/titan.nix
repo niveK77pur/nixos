@@ -24,6 +24,9 @@ lib.mkMerge [
     nix-config.enable = true;
     services.geoclue2.enable = true;
     bluetooth.enable = true;
+    programs = {
+      localsend.enable = true;
+    };
   }
   {
     # Fix issue where launcher.keychron.com cannot connect to the keyboard for

@@ -133,6 +133,7 @@ in
           };
           settings = {
             appConfig = {
+              startingView = "minimal";
               defaultOpeningMethod = "sametab";
               preventWriteToDisk = true;
               preventLocalSave = true;

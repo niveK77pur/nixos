@@ -17,11 +17,12 @@
 
   supernote-tool = pkgs.callPackage ../packages/supernote-tool.nix {};
   supernote-recursive-conversion = pkgs.callPackage ../packages/supernote-recursive-conversion/package.nix {inherit supernote-tool;};
-  snNotePath = builtins.replaceStrings ["~"] [config.services.syncthing.dataDir] config.services.syncthing.settings.folders.SN-Note.path;
-  snDataDir = "/var/lib/supernote-recursive-conversion";
-  snCacheDir = "/var/cache/supernote-recursive-conversion";
-  snOutDir = snDataDir;
-  snShaDB = "${snCacheDir}/shadb";
+  sn = rec {
+    notePath = builtins.replaceStrings ["~"] [config.services.syncthing.dataDir] config.services.syncthing.settings.folders.SN-Note.path;
+    dataDir = "/var/lib/supernote-recursive-conversion";
+    cacheDir = "/var/cache/supernote-recursive-conversion";
+    shaDB = "${cacheDir}/shadb";
+  };
 in
   lib.mkMerge [
     {
@@ -172,7 +173,7 @@ in
           inherit (inputs.self.syncthing) devices;
           folders = lib.recursiveUpdate inputs.self.syncthing.folders {
             SN-Note-PDF = {
-              path = snOutDir;
+              path = sn.dataDir;
               type = "sendonly";
               devices = with config.services.syncthing.settings.devices; [
                 optiplex.name
@@ -222,7 +223,7 @@ in
         after = ["network.target"];
         script = lib.concatStringsSep " " [
           (lib.getExe pkgs.watchexec)
-          "--watch ${lib.escapeShellArg snNotePath}"
+          "--watch ${lib.escapeShellArg sn.notePath}"
           "--exts note"
           "--on-busy-update queue"
           "--debounce 1s"
@@ -231,15 +232,15 @@ in
           "--shell none"
           "--"
           "${supernote-recursive-conversion}/bin/supernote-recursive-conversion"
-          "--input-dir ${lib.escapeShellArg snNotePath}"
-          "--output-dir ${lib.escapeShellArg snOutDir}"
-          "--shadb ${lib.escapeShellArg snShaDB}"
+          "--input-dir ${lib.escapeShellArg sn.notePath}"
+          "--output-dir ${lib.escapeShellArg sn.dataDir}"
+          "--shadb ${lib.escapeShellArg sn.shaDB}"
         ];
         serviceConfig = {
           Restart = "on-failure";
           Group = lib.mkIf config.services.syncthing.enable config.services.syncthing.group;
-          CacheDirectory = baseNameOf snDataDir;
-          StateDirectory = baseNameOf snDataDir;
+          CacheDirectory = baseNameOf sn.dataDir;
+          StateDirectory = baseNameOf sn.dataDir;
           StateDirectoryMode = "2775";
         };
       };

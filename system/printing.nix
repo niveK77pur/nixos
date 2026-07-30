@@ -18,15 +18,16 @@ in {
       ];
     };
     programs.system-config-printer.enable = true;
-    # hardware.printers.ensurePrinters = [
-    #   {
-    #     name = "laserjet";
-    #     deviceUri = "http://10.0.0.100";
-    #     model = "";
-    #     ppdOptions = {
-    #       PageSize = "A4";
-    #     };
-    #   }
-    # ];
+    hardware.printers.ensurePrinters = [
+      {
+        name = "laserjet";
+        location = "Home";
+        deviceUri = "ipp://10.0.0.100:631/ipp";
+        model = "HP/hp-color_laserjet_mfp_e47528-ps.ppd.gz";
+        ppdOptions = {
+          PageSize = "A4";
+        };
+      }
+    ];
   };
 }

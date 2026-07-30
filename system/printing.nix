@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   config,
   ...
 }: let
@@ -10,7 +11,22 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    # Enable CUPS to print documents.
-    services.printing.enable = true;
+    services.printing = {
+      enable = true;
+      drivers = [
+        pkgs.hplip
+      ];
+    };
+    programs.system-config-printer.enable = true;
+    # hardware.printers.ensurePrinters = [
+    #   {
+    #     name = "laserjet";
+    #     deviceUri = "http://10.0.0.100";
+    #     model = "";
+    #     ppdOptions = {
+    #       PageSize = "A4";
+    #     };
+    #   }
+    # ];
   };
 }

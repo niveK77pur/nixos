@@ -15,7 +15,7 @@
     guiAddress = "https://${domain}";
   };
 
-  supernote-tool = pkgs.callPackage ../packages/supernote-tool.nix {};
+  supernote-tool = inputs.supernote-tool.packages.${pkgs.stdenv.hostPlatform.system}.default;
   supernote-recursive-conversion = pkgs.callPackage ../packages/supernote-recursive-conversion/package.nix {inherit supernote-tool;};
   sn = rec {
     notePath = builtins.replaceStrings ["~"] [config.services.syncthing.dataDir] config.services.syncthing.settings.folders.SN-Note.path;

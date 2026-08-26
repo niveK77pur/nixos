@@ -203,6 +203,13 @@ in
                 titan.name
               ];
             };
+            Curriculum-Vitae = {
+              path = "~/work/curriculum-vitae";
+              devices = with config.services.syncthing.settings.devices; [
+                optiplex.name
+                tuxedo.name
+              ];
+            };
             Aegis = {
               path = "~/aegis";
               devices = with config.services.syncthing.settings.devices; [

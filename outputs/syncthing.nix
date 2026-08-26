@@ -29,5 +29,6 @@
     VinLudens-Sheets.id = "Vinludens-Sheets";
     Aegis.id = "1b48i-3suyj";
     Curriculum-Vitae.id = "curriculum-vitae";
+    Work-Applications.id = "work-applications";
   };
 }

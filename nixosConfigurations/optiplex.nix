@@ -210,6 +210,13 @@ in
                 tuxedo.name
               ];
             };
+            Work-Applications = {
+              path = "~/work/applications";
+              devices = with config.services.syncthing.settings.devices; [
+                optiplex.name
+                tuxedo.name
+              ];
+            };
             Aegis = {
               path = "~/aegis";
               devices = with config.services.syncthing.settings.devices; [

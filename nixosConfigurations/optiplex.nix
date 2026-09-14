@@ -118,52 +118,91 @@ in
       };
     }
     {
-      services.dashy = {
-        enable = true;
-        virtualHost = {
-          enableNginx = true;
-          domain = rootDomain;
-        };
-        settings = {
-          appConfig = {
-            defaultOpeningMethod = "sametab";
-            preventWriteToDisk = true;
-            preventLocalSave = true;
-            disableConfigurationForNonAdmin = true;
-            disableUpdateChecks = true;
-          };
-          pageInfo = {
+      services = {
+        homepage-dashboard = {
+          enable = true;
+          settings = {
+            disableIndexing = true;
             title = "OptiPlex";
-            logo = "https://avatars.githubusercontent.com/u/10981161?v=4";
-            navLinks = [
-              {
-                title = "niveK77pur";
-                path = "https://github.com/niveK77pur";
-              }
-              {
-                title = "VinLudens GH";
-                path = "https://github.com/VinLudens";
-              }
-            ];
+            favicon = "https://avatars.githubusercontent.com/u/10981161?v=4";
+            headerStyle = "boxed";
+            target = "_self";
           };
-          sections = [
+          widgets = [
+            {logo.icon = config.services.homepage-dashboard.settings.favicon;}
+            {greeting.text = config.services.homepage-dashboard.settings.title;}
             {
-              name = "Services";
-              items = [
+              glances = {
+                url = "http://localhost:${toString config.services.glances.port}";
+                version = lib.versions.major config.services.glances.package.version;
+                cpu = true;
+                mem = true;
+                cputemp = true;
+              };
+            }
+          ];
+          services = [];
+          bookmarks = [
+            {
+              "Home Services" = [
                 {
-                  title = "FreshRSS";
-                  icon = "${freshrss.baseUrl}/favicon.ico";
-                  url = freshrss.baseUrl;
+                  FreshRSS = lib.singleton {
+                    href = freshrss.baseUrl;
+                    icon = "freshrss";
+                  };
                 }
                 {
-                  title = "Syncthing";
-                  icon = "${syncthing.guiAddress}/assets/img/favicon-default.png";
-                  url = syncthing.guiAddress;
+                  Syncthing = lib.singleton {
+                    href = syncthing.guiAddress;
+                    icon = "syncthing";
+                  };
+                }
+              ];
+            }
+            {
+              "My Links" = [
+                {
+                  niveK77pur = lib.singleton {
+                    icon = "github";
+                    href = "https://github.com/niveK77pur";
+                  };
+                }
+                {
+                  VinLudens = lib.singleton {
+                    icon = "github";
+                    href = "https://github.com/VinLudens";
+                  };
+                }
+                {
+                  NixOS = lib.singleton {
+                    icon = "nixos";
+                    href = "https://github.com/niveK77pur/nixos";
+                  };
+                }
+                {
+                  Home-Manager = lib.singleton {
+                    icon = "nixos";
+                    href = "https://github.com/niveK77pur/77configs";
+                  };
+                }
+                {
+                  NeoVim = lib.singleton {
+                    icon = "neovim";
+                    href = "https://github.com/niveK77pur/nvim";
+                  };
+                }
+                {
+                  VinLudens = lib.singleton {
+                    icon = "youtube";
+                    href = "https://youtube.com/vinludens";
+                  };
                 }
               ];
             }
           ];
         };
+        glances.enable = true;
+        nginx.virtualHosts.${rootDomain}.locations."/".proxyPass = "http://localhost:${toString config.services.homepage-dashboard.listenPort}";
       };
     }
     {

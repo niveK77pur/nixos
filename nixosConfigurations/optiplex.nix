@@ -127,6 +127,11 @@ in
             favicon = "https://avatars.githubusercontent.com/u/10981161?v=4";
             headerStyle = "boxed";
             target = "_self";
+            layout."System Monitoring" = {
+              initiallyCollapsed = true;
+              style = "row";
+              columns = 4;
+            };
           };
           widgets = [
             {logo.icon = config.services.homepage-dashboard.settings.favicon;}
@@ -141,7 +146,33 @@ in
               };
             }
           ];
-          services = [];
+          services = [
+            {
+              "System Monitoring" = let
+                monitorSpan = 30 * 1000; # milliseconds
+                refreshInterval = 1000; # milliseconds
+                pointsLimit = monitorSpan / refreshInterval;
+              in
+                map (service: (lib.mapAttrs (name: conf:
+                  lib.recursiveUpdate conf {
+                    widget = {
+                      type = "glances";
+                      url = "http://localhost:${toString config.services.glances.port}";
+                      version = lib.versions.major config.services.glances.package.version;
+                      inherit refreshInterval pointsLimit;
+                    };
+                  })
+                service)) [
+                  {Info.widget.metric = "info";}
+                  {CPU.widget.metric = "cpu";}
+                  {RAM.widget.metric = "memory";}
+                  {Network.widget.metric = "network:enp1s0";}
+                  {Temperature.widget.metric = "sensor:Package id 0";}
+                  {Storage.widget.metric = "fs:/";}
+                  {Processes.widget.metric = "process";}
+                ];
+            }
+          ];
           bookmarks = [
             {
               "Home Services" = [

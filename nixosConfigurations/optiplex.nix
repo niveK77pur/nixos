@@ -337,4 +337,31 @@ in
         };
       };
     }
+    {
+      services = {
+        readeck = {
+          enable = true;
+          settings = {
+            server = {
+              host = "127.0.0.1";
+              port = 8000;
+              allowed_hosts = [bookmarks.domain];
+              trusted_proxies = ["127.0.0.1"];
+            };
+          };
+        };
+        nginx.virtualHosts.${bookmarks.domain}.locations."/" = {
+          proxyPass = "http://127.0.0.1:${toString config.services.readeck.settings.server.port}";
+          extraConfig = ''
+            proxy_set_header  X-Real-IP         $remote_addr;
+            proxy_set_header  Host              $host;
+            proxy_set_header  X-Forwarded-For   $proxy_add_x_forwarded_for;
+            proxy_set_header  X-Forwarded-Proto $scheme;
+            proxy_redirect off;
+            proxy_buffering off;
+            client_max_body_size 50M;
+          '';
+        };
+      };
+    }
   ]

@@ -16,6 +16,7 @@
   };
   bookmarks = rec {
     domain = "bookmarks.${rootDomain}";
+    url = "https://${domain}";
   };
 
   supernote-tool = inputs.supernote-tool.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -194,6 +195,12 @@ in
                   Syncthing = lib.singleton {
                     href = syncthing.guiAddress;
                     icon = "syncthing";
+                  };
+                }
+                {
+                  Bookmarks = lib.singleton {
+                    href = bookmarks.url;
+                    icon = "readeck";
                   };
                 }
               ];

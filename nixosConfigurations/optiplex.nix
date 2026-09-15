@@ -14,6 +14,9 @@
     domain = "sync.${rootDomain}";
     guiAddress = "https://${domain}";
   };
+  bookmarks = rec {
+    domain = "bookmarks.${rootDomain}";
+  };
 
   supernote-tool = inputs.supernote-tool.packages.${pkgs.stdenv.hostPlatform.system}.default;
   supernote-recursive-conversion = pkgs.callPackage ../packages/supernote-recursive-conversion/package.nix {inherit supernote-tool;};
@@ -87,6 +90,7 @@ in
             extraDomainNames = [
               freshrss.domain
               syncthing.domain
+              bookmarks.domain
             ];
           };
         };
@@ -101,6 +105,10 @@ in
           useACMEHost = rootDomain;
         };
         ${syncthing.domain} = {
+          forceSSL = true;
+          useACMEHost = rootDomain;
+        };
+        ${bookmarks.domain} = {
           forceSSL = true;
           useACMEHost = rootDomain;
         };

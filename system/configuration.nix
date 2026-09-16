@@ -1,4 +1,8 @@
-_: {
+{
+  lib,
+  inputs,
+  ...
+}: {
   config = {
     # Set your time zone.
     time.timeZone = "Europe/Luxembourg";
@@ -36,7 +40,13 @@ _: {
     system.autoUpgrade = {
       enable = true;
       allowReboot = false;
-      channel = "https://channels.nixos.org/nixos-unstable";
+      persistent = true;
+      flags =
+        [
+          "--print-build-logs"
+          "--commit-lock-file"
+        ]
+        ++ (lib.concatMap (input: ["--update-input" input]) (lib.attrNames inputs));
     };
   };
 }

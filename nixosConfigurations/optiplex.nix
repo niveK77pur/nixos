@@ -5,18 +5,23 @@
   config,
   ...
 }: let
-  rootDomain = "kevinbiewesch.com";
-  freshrss = rec {
-    domain = "rss.${rootDomain}";
-    baseUrl = "https://${domain}";
-  };
-  syncthing = rec {
-    domain = "sync.${rootDomain}";
-    guiAddress = "https://${domain}";
-  };
-  bookmarks = rec {
-    domain = "bookmarks.${rootDomain}";
-    url = "https://${domain}";
+  mydomain = {
+    root = "kevinbiewesch.com";
+    records = builtins.mapAttrs (name: value:
+      rec {
+        domain = "${value.name}.${mydomain.root}";
+        url = "https://${domain}";
+        homepage-icon = name;
+        homepage-label = lib.strings.toSentenceCase name;
+      }
+      // value) {
+      freshrss.name = "rss";
+      syncthing.name = "sync";
+      bookmarks = {
+        name = "bookmarks";
+        homepage-icon = "readeck";
+      };
+    };
   };
 
   supernote-tool = inputs.supernote-tool.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -70,7 +75,9 @@ in
         };
       };
     }
-    {
+    (let
+      records-domains = builtins.catAttrs "domain" (builtins.attrValues mydomain.records);
+    in {
       age = {
         secrets.cloudflare.file = ../secrets/optiplex-cloudflare.age;
         identityPaths = ["/root/.ssh/agenix"];
@@ -86,41 +93,26 @@ in
           };
         };
         certs = {
-          ${rootDomain} = {
+          ${mydomain.root} = {
             inherit (config.services.nginx) group;
-            extraDomainNames = [
-              freshrss.domain
-              syncthing.domain
-              bookmarks.domain
-            ];
+            extraDomainNames = records-domains;
           };
         };
       };
-      services.nginx.virtualHosts = {
-        ${rootDomain} = {
-          forceSSL = true;
-          useACMEHost = rootDomain;
-        };
-        ${freshrss.domain} = {
-          forceSSL = true;
-          useACMEHost = rootDomain;
-        };
-        ${syncthing.domain} = {
-          forceSSL = true;
-          useACMEHost = rootDomain;
-        };
-        ${bookmarks.domain} = {
-          forceSSL = true;
-          useACMEHost = rootDomain;
-        };
-      };
-    }
+      services.nginx.virtualHosts = builtins.listToAttrs (map
+        (domain:
+          lib.nameValuePair domain {
+            forceSSL = true;
+            useACMEHost = mydomain.root;
+          })
+        ([mydomain.root] ++ records-domains));
+    })
     {
       services = {
         freshrss = {
           enable = true;
-          inherit (freshrss) baseUrl;
-          virtualHost = freshrss.domain;
+          baseUrl = mydomain.records.freshrss.url;
+          virtualHost = mydomain.records.freshrss.domain;
           authType = "none"; # TODO: Authenticate via OIDC
           api.enable = true;
         };
@@ -184,26 +176,12 @@ in
           ];
           bookmarks = [
             {
-              "Home Services" = [
-                {
-                  FreshRSS = lib.singleton {
-                    href = freshrss.baseUrl;
-                    icon = "freshrss";
-                  };
-                }
-                {
-                  Syncthing = lib.singleton {
-                    href = syncthing.guiAddress;
-                    icon = "syncthing";
-                  };
-                }
-                {
-                  Bookmarks = lib.singleton {
-                    href = bookmarks.url;
-                    icon = "readeck";
-                  };
-                }
-              ];
+              "Home Services" = map (record: {
+                ${record.homepage-label} = lib.singleton {
+                  href = record.url;
+                  icon = record.homepage-icon;
+                };
+              }) (lib.attrValues mydomain.records);
             }
             {
               "My Links" = [
@@ -248,7 +226,7 @@ in
           ];
         };
         glances.enable = true;
-        nginx.virtualHosts.${rootDomain}.locations."/".proxyPass = "http://localhost:${toString config.services.homepage-dashboard.listenPort}";
+        nginx.virtualHosts.${mydomain.root}.locations."/".proxyPass = "http://localhost:${toString config.services.homepage-dashboard.listenPort}";
       };
     }
     {
@@ -312,7 +290,7 @@ in
           };
         };
       };
-      services.nginx.virtualHosts.${syncthing.domain}.locations."/".proxyPass =
+      services.nginx.virtualHosts.${mydomain.records.syncthing.domain}.locations."/".proxyPass =
         "https://" + config.services.syncthing.guiAddress;
     }
     {
@@ -352,12 +330,12 @@ in
             server = {
               host = "127.0.0.1";
               port = 8000;
-              allowed_hosts = [bookmarks.domain];
+              allowed_hosts = [mydomain.records.bookmarks.domain];
               trusted_proxies = ["127.0.0.1"];
             };
           };
         };
-        nginx.virtualHosts.${bookmarks.domain}.locations."/" = {
+        nginx.virtualHosts.${mydomain.records.bookmarks.domain}.locations."/" = {
           proxyPass = "http://127.0.0.1:${toString config.services.readeck.settings.server.port}";
           extraConfig = ''
             proxy_set_header  X-Real-IP         $remote_addr;

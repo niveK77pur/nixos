@@ -21,6 +21,10 @@
         name = "bookmarks";
         homepage-icon = "readeck";
       };
+      tasks = {
+        name = "tasks";
+        homepage-icon = "vikunja";
+      };
     };
   };
 
@@ -345,6 +349,36 @@ in
             proxy_redirect off;
             proxy_buffering off;
             client_max_body_size 50M;
+          '';
+        };
+      };
+    }
+    {
+      services = {
+        vikunja = {
+          enable = true;
+          frontendScheme = "http";
+          frontendHostname = mydomain.records.tasks.domain;
+          settings = {
+            service = {
+              enableemailreminders = false;
+              # Registration must be enabled to create first user
+              enableregistration = false;
+            };
+            defaultsettings = {
+              week_start = 1; # Monday
+            };
+          };
+        };
+        nginx.virtualHosts.${mydomain.records.tasks.domain}.locations."/" = {
+          proxyPass = "http://localhost:${toString config.services.vikunja.port}";
+          proxyWebsockets = true;
+          recommendedProxySettings = true;
+          extraConfig = ''
+            client_max_body_size 5000M;
+            proxy_read_timeout   600s;
+            proxy_send_timeout   600s;
+            send_timeout         600s;
           '';
         };
       };

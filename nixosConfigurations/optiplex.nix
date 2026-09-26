@@ -3,6 +3,7 @@
   pkgs,
   lib,
   config,
+  options,
   ...
 }: let
   mydomain = {
@@ -19,6 +20,10 @@
       syncthing.name = "sync";
       bookmarks.homepage-icon = "readeck";
       tasks.homepage-icon = "vikunja";
+      files = {
+        homepage-icon = "copyparty";
+        url = "http://optiplex:3923";
+      };
     };
   };
 
@@ -30,8 +35,9 @@
     cacheDir = "/var/cache/supernote-recursive-conversion";
     shaDB = "${cacheDir}/shadb";
   };
-in
-  lib.mkMerge [
+in {
+  imports = [inputs.copyparty.nixosModules.default];
+  config = lib.mkMerge [
     {
       bootloader.systemd.enable = true;
       networking = {
@@ -377,4 +383,24 @@ in
         };
       };
     }
-  ]
+    {
+      services.copyparty = {
+        enable = true;
+        settings = {
+          i = "0.0.0.0"; # TODO: Put behind nginx
+        };
+        # accounts.admin.passwordFile = "TODO";
+        volumes = lib.mkMerge [
+          options.services.copyparty.volumes.default
+          {
+            "/syncthing" = {
+              path = config.services.syncthing.dataDir;
+              access.r = "*";
+              flags = {};
+            };
+          }
+        ];
+      };
+    }
+  ];
+}

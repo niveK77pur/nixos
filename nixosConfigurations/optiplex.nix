@@ -9,7 +9,7 @@
     root = "kevinbiewesch.com";
     records = builtins.mapAttrs (name: value:
       rec {
-        domain = "${value.name}.${mydomain.root}";
+        domain = "${value.name or name}.${mydomain.root}";
         url = "https://${domain}";
         homepage-icon = name;
         homepage-label = lib.strings.toSentenceCase name;
@@ -17,14 +17,8 @@
       // value) {
       freshrss.name = "rss";
       syncthing.name = "sync";
-      bookmarks = {
-        name = "bookmarks";
-        homepage-icon = "readeck";
-      };
-      tasks = {
-        name = "tasks";
-        homepage-icon = "vikunja";
-      };
+      bookmarks.homepage-icon = "readeck";
+      tasks.homepage-icon = "vikunja";
     };
   };
 

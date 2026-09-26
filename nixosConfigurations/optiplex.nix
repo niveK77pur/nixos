@@ -36,8 +36,9 @@
     cacheDir = "/var/cache/supernote-recursive-conversion";
     shaDB = "${cacheDir}/shadb";
   };
-in
-  lib.mkMerge [
+in {
+  imports = [inputs.copyparty.nixosModules.default];
+  config = lib.mkMerge [
     {
       bootloader.systemd.enable = true;
       networking = {
@@ -383,4 +384,20 @@ in
         };
       };
     }
-  ]
+    {
+      services.copyparty = {
+        enable = true;
+        settings = {
+          i = "0.0.0.0"; # TODO: Put behind nginx
+        };
+        volumes = {
+          "/supernote" = {
+            path = sn.dataDir;
+            access.r = "*";
+            flags = {};
+          };
+        };
+      };
+    }
+  ];
+}

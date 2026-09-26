@@ -16,6 +16,7 @@
       url = "github:jya-dev/supernote-tool";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    copyparty.url = "github:9001/copyparty";
   };
 
   outputs = inputs @ {

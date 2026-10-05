@@ -401,6 +401,88 @@ in {
           }
         ];
       };
+      systemd.services.copyparty-acl = let
+        cpuser = config.services.copyparty.user;
+        copyparty-nix-paths = pkgs.writeTextFile {
+          name = "copyparty-nix-paths";
+          text = lib.pipe config.services.copyparty.volumes [
+            lib.attrValues
+            (builtins.catAttrs "path")
+            (lib.concatStringsSep "\n")
+          ];
+        };
+        setfacl = "${pkgs.acl}/bin/setfacl";
+        findSetfacl = let
+          prunePaths = [
+            ".snapshots"
+            ".borgbackup-snapshots"
+            ".direnv"
+          ];
+          findPruneExpr = lib.pipe prunePaths [
+            (map (e: "-name ${lib.escapeShellArg e}"))
+            (lib.concatStringsSep " -o ")
+          ];
+        in
+          lib.getExe (pkgs.writeShellApplication {
+            name = "find-setfacl";
+            text = ''
+              path="$1"
+              shift 1
+              find "$path" \( -type l -o ${findPruneExpr} \) -prune -o "$@"
+            '';
+            meta.longDescription = ''
+              The basic `setfacl -R` fails on the btrfs subvolume boundaries that
+              may appear as a result of the `.snapshots` folders used for btrfs
+              snapshots.
+
+              This alternative command uses `find` to mimic the recursion, while
+              also allowing to specify an exclusion list of folders (i.e.
+              snapshots folders). This provides better granularity over the
+              recursion.
+            '';
+          });
+      in {
+        description = "Set up ACL for copyparty volumes";
+        wantedBy = ["multi-user.target"];
+        serviceConfig = {
+          Type = "oneshot";
+          User = "root";
+          StateDirectory = "copyparty-acl";
+        };
+        script = ''
+          stateFile="$STATE_DIRECTORY/paths"
+          [ ! -f "$stateFile" ] && touch "$stateFile"
+
+          set -x
+
+          for path in $(comm -23 <(sort "$stateFile") <(sort "${copyparty-nix-paths}")); do
+            echo "Removing ACL for unmanaged $path"
+            # Remove ACL on files and folders
+            ${findSetfacl} "$path" -exec ${setfacl} -x u:${cpuser} {} +
+            # Remove default ACL on folders
+            ${findSetfacl} "$path" -type d -exec ${setfacl} -x d:u:${cpuser} {} +
+          done
+
+          # Remove cleaned up paths from statefile
+          tmpState="$(mktemp "$STATE_DIRECTORY/paths.XXXXXX")"
+          comm -12 --output-delimiter="" <(sort "$stateFile") <(sort "${copyparty-nix-paths}") > "$tmpState"
+          mv "$tmpState" "$stateFile"
+
+          # NOTE: We apply `rwx` ACL to make life simple. Trust and
+          # responsibility is delegated to copyparty for managing the desired
+          # access to the various files and folders.
+          for path in $(comm -13 <(sort "$stateFile") <(sort "${copyparty-nix-paths}")); do
+            echo "Applying ACL for added $path"
+            # Apply recursively to all files
+            ${findSetfacl} "$path" -exec ${setfacl} -m u:${cpuser}:rwX {} +
+            # Apply default ACL on folders
+            ${findSetfacl} "$path" -type d -exec ${setfacl} -m d:u:${cpuser}:rwx {} +
+          done
+
+          # Update with final state
+          cp "${copyparty-nix-paths}" "$stateFile"
+        '';
+      };
     }
   ];
 }

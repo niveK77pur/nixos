@@ -31,14 +31,15 @@ in {
       # HIP
       "L+    /opt/rocm/hip   -    -    -     -    ${pkgs.rocmPackages.clr}"
     ];
-
-    hardware.graphics = {
-      enable = true; # OpenGL
-      enable32Bit = true; # Vulkan
-      extraPackages = [
-        pkgs.rocmPackages.clr.icd # OpenCL
-        pkgs.libvdpau-va-gl
-      ];
+    hardware = {
+      amdgpu.opencl.enable = true; # OpenCL
+      graphics = {
+        enable = true; # OpenGL
+        enable32Bit = true; # Vulkan
+        extraPackages = [
+          pkgs.libvdpau-va-gl
+        ];
+      };
     };
     environment.sessionVariables = {
       LIBVA_DRIVER_NAME = "radeonsi"; # VA-API

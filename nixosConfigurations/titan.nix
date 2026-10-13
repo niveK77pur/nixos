@@ -26,7 +26,10 @@ lib.mkMerge [
     printing.enable = true;
     programs = {
       localsend.enable = true;
-      steam.enable = true;
+      steam = {
+        enable = true;
+        protontricks.enable = true;
+      };
       gpu-screen-recorder.enable = true;
     };
   }

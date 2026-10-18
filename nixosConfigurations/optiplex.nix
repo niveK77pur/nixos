@@ -448,7 +448,7 @@ in {
           });
       in {
         description = "Set up ACL for copyparty volumes";
-        wantedBy = ["multi-user.target"];
+        wantedBy = ["copyparty.service"];
         serviceConfig = {
           Type = "oneshot";
           User = "root";
@@ -483,6 +483,11 @@ in {
             # Apply default ACL on folders
             ${findSetfacl} "$path" -type d -exec ${setfacl} -m d:u:${cpuser}:rwx {} +
           done
+
+          # The effective mask may be reset, preventing access
+          echo "Refreshing ACL on root for paths:"
+          cat "${copyparty-nix-paths}"
+          ${setfacl} -m u:${cpuser}:rwX - < "${copyparty-nix-paths}"
 
           # Update with final state
           cp "${copyparty-nix-paths}" "$stateFile"

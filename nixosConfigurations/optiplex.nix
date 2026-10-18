@@ -384,12 +384,17 @@ in {
       };
     }
     {
+      age.secrets.copyparty-admin-password = {
+        file = ../secrets/copyparty-admin-password.age;
+        owner = config.services.copyparty.user;
+        group = config.services.copyparty.group;
+      };
       services.copyparty = {
         enable = true;
         settings = {
           i = "0.0.0.0"; # TODO: Put behind nginx
         };
-        # accounts.admin.passwordFile = "TODO";
+        accounts.admin.passwordFile = config.age.secrets.copyparty-admin-password.path;
         volumes = lib.mkMerge [
           options.services.copyparty.volumes.default
           {

@@ -398,10 +398,21 @@ in {
         volumes = lib.mkMerge [
           options.services.copyparty.volumes.default
           {
+            # Admin access for nixos default volumes
+            "/".access.A = "admin";
+          }
+          {
             "/syncthing" = {
               path = config.services.syncthing.dataDir;
+              access = {
+                r = "*";
+                A = "admin";
+              };
+            };
+            "/syncthing/supernote-pdf" = {
+              # WARN: This is a read-only folder managed by the corresponding service
+              path = sn.dataDir;
               access.r = "*";
-              flags = {};
             };
           }
         ];

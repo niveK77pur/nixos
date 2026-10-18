@@ -4,4 +4,5 @@ let
 in {
   "optiplex-cloudflare.age".publicKeys = [titan optiplex];
   "freshrss-api-password.age".publicKeys = [titan optiplex];
+  "copyparty-admin-password.age".publicKeys = [titan optiplex];
 }

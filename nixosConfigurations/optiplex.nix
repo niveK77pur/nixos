@@ -397,27 +397,27 @@ in {
             i = "0.0.0.0"; # TODO: Put behind nginx
           };
         accounts.admin.passwordFile = config.age.secrets.copyparty-admin-password.path;
-        volumes = lib.mkMerge [
-          options.services.copyparty.volumes.default
-          {
-            # Admin access for nixos default volumes
-            "/".access.A = "admin";
-          }
-          {
-            "/syncthing" = {
-              path = config.services.syncthing.dataDir;
-              access = {
-                r = "*";
-                A = "admin";
-              };
+        volumes = {
+          "/copyparty" = {
+            path = options.services.copyparty.volumes.default."/".path;
+            access = {
+              r = "*";
+              A = "admin";
             };
-            "/syncthing/supernote-pdf" = {
-              # WARN: This is a read-only folder managed by the corresponding service
-              path = sn.dataDir;
-              access.r = "*";
+          };
+          "/syncthing" = {
+            path = config.services.syncthing.dataDir;
+            access = {
+              r = "*";
+              A = "admin";
             };
-          }
-        ];
+          };
+          "/syncthing/supernote-pdf" = {
+            # WARN: This is a read-only folder managed by the corresponding service
+            path = sn.dataDir;
+            access.r = "*";
+          };
+        };
       };
       systemd.services.copyparty-acl = let
         cpuser = config.services.copyparty.user;

@@ -391,9 +391,11 @@ in {
       };
       services.copyparty = {
         enable = true;
-        settings = {
-          i = "0.0.0.0"; # TODO: Put behind nginx
-        };
+        settings =
+          options.services.copyparty.settings.default
+          // {
+            i = "0.0.0.0"; # TODO: Put behind nginx
+          };
         accounts.admin.passwordFile = config.age.secrets.copyparty-admin-password.path;
         volumes = lib.mkMerge [
           options.services.copyparty.volumes.default

@@ -37,10 +37,17 @@ in {
             default = null;
             description = "Options to configure `services.snapper.configs.<name>`. Snapper backups are disabled if not specified.";
           };
-          borgSnapshotPath = lib.mkOption {
-            type = lib.types.str;
-            default = "${config.path}/.borgbackup-snapshots/${name}";
-            description = "Location to store the internal temporary btrfs snapshots";
+          borgSnapshot = {
+            enable = lib.mkOption {
+              type = lib.types.bool;
+              default = true;
+              description = "When `true`, performs the backup on a temporary btrfs snapshot of the path. When `false`, uses borg directly to backup the path.";
+            };
+            path = lib.mkOption {
+              type = lib.types.str;
+              default = "${config.path}/.borgbackup-snapshots/${name}";
+              description = "Location to store the internal temporary btrfs snapshots on which to perform the borg backup";
+            };
           };
         };
       }));
@@ -90,18 +97,24 @@ in {
               lib.nameValuePair "${group}-${destname}" (
                 locCfg.borgOpts
                 // {
-                  # NOTE: We snapshot to `borgSnapshotPath` and `cd` into it so
-                  # that borg archive entries are relative (./foo/bar.txt
-                  # rather than /the/full/snapshot/path/foo/bar.txt). On
-                  # restore: `cd /target && borg extract repo::archive`.
+                  repo = destination;
+                  startAt = []; # Delegate starting to our custom systemd setup
+                  # NOTE: We `cd` into the path to be backed up, so that borg
+                  # archive entries are relative (./foo/bar.txt rather than
+                  # /the/full/snapshot/path/foo/bar.txt). On restore: `cd
+                  # /target && borg extract repo::archive`. At the same time,
+                  # this avoids differences in paths when using
+                  # `borgSnapshot.enable` or not.
                   paths = ["."];
                   preHook =
                     (locCfg.borgOpts.preHook or "")
                     + ''
-                      cd ${locCfg.borgSnapshotPath}
+                      cd ${
+                        if locCfg.borgSnapshot.enable
+                        then locCfg.borgSnapshot.path
+                        else locCfg.path
+                      }
                     '';
-                  repo = destination;
-                  startAt = []; # Delegate starting to our custom systemd setup
                 }
               )
           )
@@ -127,6 +140,7 @@ in {
             runUnitName = "borg-run-${group}";
             prepareUnitName = "borg-prepare-${group}";
             cleanupUnitName = "borg-cleanup-${group}";
+            deactivateUnitName = "borg-deactivate-${group}";
             borgbackupUnitName = destname: "borgbackup-job-${group}-${destname}";
             borgbackupJobUnits =
               map (destname: "${borgbackupUnitName destname}.service")
@@ -135,11 +149,12 @@ in {
             targets.${runUnitName} = {
               description = "Borg backup run for ${group}";
               wants =
-                [
+                (lib.optionals locCfg.borgSnapshot.enable [
                   "${prepareUnitName}.service"
                   "${cleanupUnitName}.service"
-                ]
-                ++ borgbackupJobUnits;
+                ])
+                ++ borgbackupJobUnits
+                ++ ["${deactivateUnitName}.service"];
             };
 
             timers.${runUnitName} = {
@@ -155,7 +170,7 @@ in {
             services = let
               btrfs = lib.getExe pkgs.btrfs-progs;
             in
-              {
+              (lib.optionalAttrs locCfg.borgSnapshot.enable {
                 ${prepareUnitName} = {
                   description = "Borg prepare snapshot for ${group}";
                   serviceConfig.Type = "oneshot";
@@ -166,14 +181,14 @@ in {
                       exit 1
                     fi
 
-                    mkdir -p "${dirOf locCfg.borgSnapshotPath}"
+                    mkdir -p "${dirOf locCfg.borgSnapshot.path}"
 
                     # Reclaim any orphan snapshot from a prior crashed run.
-                    if [ -e "${locCfg.borgSnapshotPath}" ]; then
-                      ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
+                    if [ -e "${locCfg.borgSnapshot.path}" ]; then
+                      ${btrfs} subvolume delete ${locCfg.borgSnapshot.path}
                     fi
 
-                    ${btrfs} subvolume snapshot -r ${locCfg.path} ${locCfg.borgSnapshotPath}
+                    ${btrfs} subvolume snapshot -r ${locCfg.path} ${locCfg.borgSnapshot.path}
                   '';
                 };
 
@@ -182,17 +197,24 @@ in {
                   serviceConfig.Type = "oneshot";
                   after = ["${prepareUnitName}.service"] ++ borgbackupJobUnits;
                   script = ''
-                    if [ -e "${locCfg.borgSnapshotPath}" ]; then
-                      ${btrfs} subvolume delete ${locCfg.borgSnapshotPath}
+                    if [ -e "${locCfg.borgSnapshot.path}" ]; then
+                      ${btrfs} subvolume delete ${locCfg.borgSnapshot.path}
                     fi
                   '';
+                };
+              })
+              // {
+                ${deactivateUnitName} = {
+                  description = "Stop and deactivate the ${runUnitName}.target";
+                  serviceConfig.Type = "oneshot";
+                  after = borgbackupJobUnits ++ (lib.optional locCfg.borgSnapshot.enable "${cleanupUnitName}.service");
                   # WARN: We must manually deactivate the target as systemd
                   # does not do this automatically when all its jobs complete.
                   # Failing to do this would render our backup pipeline stale.
                   # Cleanup is the last thing to run in our borgbackup
                   # pipeline, so this is the right place to mark the target as
                   # complete.
-                  postStop = ''
+                  script = ''
                     ${pkgs.systemd}/bin/systemctl --no-block stop ${runUnitName}.target
                   '';
                 };
@@ -200,12 +222,14 @@ in {
               # Hook into and enhance services.borgbackup.jobs created module
               // lib.mapAttrs' (
                 destname: _:
-                  lib.nameValuePair (borgbackupUnitName destname) {
-                    serviceConfig.Type = "oneshot";
-                    partOf = ["${runUnitName}.target"];
-                    requires = ["${prepareUnitName}.service"];
-                    after = ["${prepareUnitName}.service"];
-                  }
+                  lib.nameValuePair (borgbackupUnitName destname) ({
+                      serviceConfig.Type = "oneshot";
+                      partOf = ["${runUnitName}.target"];
+                    }
+                    // (lib.optionalAttrs locCfg.borgSnapshot.enable {
+                      requires = ["${prepareUnitName}.service"];
+                      after = ["${prepareUnitName}.service"];
+                    }))
               )
               locCfg.destinations;
           }

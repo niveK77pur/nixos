@@ -65,16 +65,41 @@ in {
             destinations = {
               local = "/var/lib/borgbackup/freshrss";
             };
-            snapperOpts.TIMELINE_CREATE = true;
-            borgOpts.encryption.mode = "none";
+            snapperOpts = {
+              TIMELINE_CREATE = true;
+              TIMELINE_CLEANUP = true;
+            };
+            borgOpts = {
+              encryption.mode = "none";
+              prune.keep = {
+                monthly = 6;
+                weekly = 7;
+                daily = 10;
+              };
+            };
           };
           syncthing = {
             path = config.services.syncthing.dataDir;
             destinations = {
               local = "/var/lib/borgbackup/syncthing";
             };
-            snapperOpts.TIMELINE_CREATE = true;
-            borgOpts.encryption.mode = "none";
+            snapperOpts = {
+              TIMELINE_CREATE = true;
+              TIMELINE_CLEANUP = true;
+              TIMELINE_LIMIT_HOURLY = 7 * 24;
+              TIMELINE_LIMIT_DAILY = 31;
+              TIMELINE_LIMIT_WEEKLY = 10;
+              TIMELINE_LIMIT_MONTHLY = 2 * 12;
+            };
+            borgOpts = {
+              encryption.mode = "none";
+              prune.keep = {
+                daily = 31;
+                weekly = 12;
+                monthly = 24;
+                yearly = 10;
+              };
+            };
           };
         };
       };

@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  config,
   ...
 }:
 lib.mkMerge [
@@ -31,6 +32,12 @@ lib.mkMerge [
         protontricks.enable = true;
       };
       gpu-screen-recorder.enable = true;
+    };
+  }
+  {
+    services.displayManager = {
+      plasma-login-manager.enable = true;
+      autoLogin.user = config.user.name;
     };
   }
   {

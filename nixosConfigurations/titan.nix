@@ -6,6 +6,12 @@
 }:
 lib.mkMerge [
   {
+    services.mullvad-vpn = {
+      enable = true;
+      gui.enable = true;
+    };
+  }
+  {
     user = {
       name = "kevin";
     };

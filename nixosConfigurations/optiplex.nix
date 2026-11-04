@@ -414,6 +414,7 @@ in {
         owner = config.services.copyparty.user;
         group = config.services.copyparty.group;
       };
+      users.users.${config.services.syncthing.user}.homeMode = "0770";
       services.copyparty = {
         enable = true;
         settings =

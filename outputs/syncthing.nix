@@ -23,9 +23,13 @@
   };
 
   folders = {
+    SN-Document.id = "rxf4h-8brby";
+    SN-Export.id = "zgn22-ht7gs";
+    SN-MyStyle.id = "fpehy-c1mjv";
     SN-Note-PDF.id = "peedi-tzoyl";
     SN-Note.id = "8uvfz-kien7";
-    SN-MyStyle.id = "fpehy-c1mjv";
+    SN-Screenshot.id = "shyjp-wei6y";
+    SN-Inbox.id = "5r5jp-mxics";
     VinLudens-Sheets.id = "Vinludens-Sheets";
     Aegis.id = "1b48i-3suyj";
     Curriculum-Vitae.id = "curriculum-vitae";

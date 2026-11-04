@@ -259,11 +259,28 @@ in {
       };
     }
     {
-      services.syncthing = {
+      services.syncthing = let
+        sn-devices = with config.services.syncthing.settings.devices; [
+          optiplex.name
+          supernote.name
+        ];
+      in {
         enable = true;
         settings = {
           inherit (inputs.self.syncthing) devices;
           folders = lib.recursiveUpdate inputs.self.syncthing.folders {
+            SN-Document = {
+              path = "~/supernote/Document";
+              devices = sn-devices;
+            };
+            SN-Export = {
+              path = "~/supernote/EXPORT";
+              devices = sn-devices;
+            };
+            SN-MyStyle = {
+              path = "~/supernote/MyStyle";
+              devices = sn-devices;
+            };
             SN-Note-PDF = {
               path = sn.dataDir;
               type = "sendonly";
@@ -275,17 +292,15 @@ in {
             };
             SN-Note = {
               path = "~/supernote/Note";
-              devices = with config.services.syncthing.settings.devices; [
-                optiplex.name
-                supernote.name
-              ];
+              devices = sn-devices;
             };
-            SN-MyStyle = {
-              path = "~/supernote/MyStyle";
-              devices = with config.services.syncthing.settings.devices; [
-                optiplex.name
-                supernote.name
-              ];
+            SN-Screenshot = {
+              path = "~/supernote/SCREENSHOT";
+              devices = sn-devices;
+            };
+            SN-Inbox = {
+              path = "~/supernote/INBOX";
+              devices = sn-devices;
             };
             VinLudens-Sheets = {
               path = "~/vinludens/sheets";

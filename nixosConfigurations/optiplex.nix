@@ -472,7 +472,15 @@ in {
         settings =
           options.services.copyparty.settings.default
           // {
+            ihead = "*";
             i = "unix:770:${config.services.nginx.group}:/dev/shm/party.sock"; # for nginx
+            # copyparty only applies X-Forwarded-Proto/Host when the configured
+            # xff-hdr is present. nginx forwards X-Forwarded-Proto/X-Real-IP
+            # but not CF-Connecting-IP (DNS points to Tailscale IP, so requests
+            # are not Cloudflare-proxied), so x-real-ip keeps the request seen
+            # as https and avoids Origin/protocol CORS rejects.
+            xff-hdr = "x-real-ip";
+            rproxy = 1;
           };
         accounts.admin.passwordFile = config.age.secrets.copyparty-admin-password.path;
         volumes = {

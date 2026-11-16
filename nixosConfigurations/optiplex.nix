@@ -20,10 +20,7 @@
       syncthing.name = "sync";
       bookmarks.homepage-icon = "readeck";
       tasks.homepage-icon = "vikunja";
-      files = {
-        homepage-icon = "copyparty";
-        url = "http://optiplex:3923";
-      };
+      files.homepage-icon = "copyparty";
     };
   };
 
@@ -475,7 +472,7 @@ in {
         settings =
           options.services.copyparty.settings.default
           // {
-            i = "0.0.0.0"; # TODO: Put behind nginx
+            i = "unix:770:${config.services.nginx.group}:/dev/shm/party.sock"; # for nginx
           };
         accounts.admin.passwordFile = config.age.secrets.copyparty-admin-password.path;
         volumes = {
@@ -499,6 +496,46 @@ in {
             access.r = "*";
           };
         };
+      };
+      # See: https://github.com/9001/copyparty/blob/hovudstraum/contrib/nginx/copyparty.conf
+      # TODO: Create a separate and new group? Must match in `i` config.
+      users.users.${config.services.copyparty.user}.extraGroups = [config.services.nginx.group];
+      services.nginx = {
+        upstreams.cpp_uds = {
+          servers."unix:/dev/shm/party.sock".fail_timeout = "1s";
+          extraConfig = ''
+            keepalive 1;
+          '';
+        };
+        virtualHosts.${mydomain.records.files.domain}.locations."/" = {
+          proxyPass = "http://cpp_uds";
+          extraConfig = ''
+            proxy_redirect off;
+            # disable buffering (next 3 lines)
+            proxy_http_version 1.1;
+            proxy_buffering off;
+            proxy_request_buffering off;
+            # improve download speed from 600 to 1500 MiB/s
+            proxy_buffers 32 8k;
+            proxy_buffer_size 16k;
+            proxy_busy_buffers_size 24k;
+
+            proxy_set_header   Connection        "Keep-Alive";
+            proxy_set_header   Host              $host;
+            proxy_set_header   X-Real-IP         $remote_addr;
+            proxy_set_header   X-Forwarded-Proto $scheme;
+            #proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+            # NOTE: with cloudflare you want this X-Forwarded-For instead:
+            proxy_set_header   X-Forwarded-For   $http_cf_connecting_ip;
+          '';
+        };
+        # default client_max_body_size (1M) blocks uploads larger than 256 MiB
+        clientMaxBodySize = "1024M";
+        appendHttpConfig = ''
+          client_header_timeout 610m;
+          client_body_timeout 610m;
+          send_timeout 610m;
+        '';
       };
       systemd.services.copyparty-acl = let
         cpuser = config.services.copyparty.user;

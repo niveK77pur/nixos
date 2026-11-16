@@ -108,6 +108,22 @@ in {
               };
             };
           };
+          vikunja = {
+            path = "/var/lib/vikunja";
+            borgSnapshot.enable = false;
+            destinations = {
+              local = "/var/lib/borgbackup/vikunja";
+            };
+            borgOpts = {
+              encryption.mode = "none";
+              prune.keep = {
+                hourly = 48;
+                daily = 21;
+                weekly = 12;
+                monthly = 6;
+              };
+            };
+          };
         };
       };
     }

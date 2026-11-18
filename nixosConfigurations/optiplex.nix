@@ -347,7 +347,19 @@ in {
       # (i.e. copyparty) may create files here, which may lead to the
       # respective files being owned by another user/group, and thus syncthing
       # fails to sync back those files due to a permission error.
-      systemd.tmpfiles.rules = ["A+ ${config.services.syncthing.dataDir} - - - - u:${config.services.syncthing.user}:rwX,d:u:${config.services.syncthing.user}:rwx"];
+      systemd.tmpfiles.rules = let
+        acl = "u:${config.services.syncthing.user}:rwX,d:u:${config.services.syncthing.user}:rwx";
+        folderPaths = lib.pipe config.services.syncthing.settings.folders [
+          lib.attrValues
+          (builtins.catAttrs "path")
+          (map (builtins.replaceStrings ["~"] [config.services.syncthing.dataDir]))
+        ];
+      in
+        # Do not recurse on dataDir directly, as it may undesireably recurse,
+        # for example, into our snapshot subvolumes
+        ["a+ ${config.services.syncthing.dataDir} - - - - ${acl}"]
+        # Recurse on the actual syncthing folders that we explicitly set up
+        ++ (map (path: "A+ ${path} - - - - ${acl}") folderPaths);
     }
     {
       systemd.services.supernote-recursive-conversion = {

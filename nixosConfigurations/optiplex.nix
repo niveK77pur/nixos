@@ -343,6 +343,11 @@ in {
       };
       services.nginx.virtualHosts.${mydomain.records.syncthing.domain}.locations."/".proxyPass =
         "https://" + config.services.syncthing.guiAddress;
+      # Ensure syncthing always has permissions in its dataDir. Other services
+      # (i.e. copyparty) may create files here, which may lead to the
+      # respective files being owned by another user/group, and thus syncthing
+      # fails to sync back those files due to a permission error.
+      systemd.tmpfiles.rules = ["A+ ${config.services.syncthing.dataDir} - - - - u:${config.services.syncthing.user}:rwX,d:u:${config.services.syncthing.user}:rwx"];
     }
     {
       systemd.services.supernote-recursive-conversion = {

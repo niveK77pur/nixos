@@ -39,6 +39,13 @@ in {
   imports = [inputs.copyparty.nixosModules.default];
   config = lib.mkMerge [
     {
+      # WARN: Package pulled in by glances
+      # See: https://github.com/mpdavis/python-jose/issues/390
+      nixpkgs.config.permittedInsecurePackages = [
+        "python3.14-python-jose-3.5.0"
+      ];
+    }
+    {
       bootloader.systemd.enable = true;
       networking = {
         enableWireless = false;

@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   inputs,
   ...
 }: {
@@ -47,6 +48,20 @@
           "--commit-lock-file"
         ]
         ++ (lib.concatMap (input: ["--update-input" input]) (lib.attrNames inputs));
+    };
+    # Keep the trust exception and bot identity out of global git config.
+    # XDG_CONFIG_HOME points at a generated dir so libgit2 (used by Nix for
+    # git+file inputs) reads safe.directory; GIT_CONFIG_* env overrides are not
+    # honored by libgit2. This is needed in case /etc/nixos is not owned by
+    # root.
+    systemd.services.nixos-upgrade.environment = {
+      XDG_CONFIG_HOME = pkgs.writeTextDir "git/config" (lib.generators.toGitINI {
+        safe.directory = "/etc/nixos";
+        user = {
+          email = "nixos-upgrade@localhost";
+          name = "nixos-upgrade";
+        };
+      });
     };
   };
 }

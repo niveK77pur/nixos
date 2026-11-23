@@ -121,6 +121,22 @@ in {
               };
             };
           };
+          copyparty = {
+            path = options.services.copyparty.volumes.default."/".path;
+            borgSnapshot.enable = false;
+            destinations = {
+              local = "/var/lib/borgbackup/copyparty";
+            };
+            borgOpts = {
+              encryption.mode = "none";
+              prune.keep = {
+                hourly = 48;
+                daily = 11;
+                weekly = 12;
+                monthly = 12;
+              };
+            };
+          };
         };
       };
     }

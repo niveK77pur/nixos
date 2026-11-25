@@ -497,6 +497,7 @@ in {
             # as https and avoids Origin/protocol CORS rejects.
             xff-hdr = "x-real-ip";
             rproxy = 1;
+            e2dsa = true;
           };
         accounts.admin.passwordFile = config.age.secrets.copyparty-admin-password.path;
         volumes = {
